@@ -37,3 +37,6 @@ src/main/resources/application-local.properties
 
 ### Local seed data ###
 data/
+
+### macOS ###
+.DS_Store
