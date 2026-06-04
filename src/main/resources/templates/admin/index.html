@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Game Planning - Admin</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 900px; margin: 40px auto; padding: 0 20px; }
+        h1 { color: #333; }
+        .date-nav { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; }
+        .date-nav a { text-decoration: none; font-size: 1.4em; color: #555; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 32px; }
+        th { background: #f0f0f0; padding: 8px 12px; text-align: left; border-bottom: 2px solid #ccc; }
+        td { padding: 8px 12px; border-bottom: 1px solid #eee; }
+        tr:hover td { background: #fafafa; }
+        .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.8em; font-weight: bold; }
+        .SCHEDULED { background: #e0f0ff; color: #0066cc; }
+        .IN_PROGRESS { background: #fff0e0; color: #cc6600; }
+        .FINISHED { background: #e0ffe0; color: #006600; }
+        form.inline { display: inline; }
+        button.delete { background: none; border: none; color: #cc0000; cursor: pointer; font-size: 0.9em; }
+        button.delete:hover { text-decoration: underline; }
+        .add-form { background: #f9f9f9; border: 1px solid #ddd; border-radius: 6px; padding: 20px; }
+        .add-form h2 { margin-top: 0; }
+        .form-row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+        .form-row label { display: flex; flex-direction: column; gap: 4px; font-size: 0.9em; color: #555; }
+        .form-row select, .form-row input { padding: 6px 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 1em; }
+        button[type=submit] { background: #0066cc; color: white; border: none; padding: 8px 20px; border-radius: 4px; cursor: pointer; font-size: 1em; }
+        button[type=submit]:hover { background: #0052a3; }
+        .empty { color: #999; font-style: italic; }
+    </style>
+</head>
+<body>
+
+<h1>Game Planning</h1>
+
+<!-- Date navigation -->
+<div class="date-nav">
+    <a th:href="@{/admin(date=${date.minusDays(1)})}">&larr;</a>
+    <strong th:text="${#temporals.format(date, 'EEEE d MMMM yyyy')}"></strong>
+    <a th:href="@{/admin(date=${date.plusDays(1)})}">&rarr;</a>
+    <input type="date" id="datePicker" th:value="${date}" onchange="window.location='/admin?date='+this.value">
+</div>
+
+<!-- Game list -->
+<table th:if="${!games.isEmpty()}">
+    <thead>
+        <tr>
+            <th>Time</th>
+            <th>Court</th>
+            <th>Home team</th>
+            <th>Away team</th>
+            <th>Status</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr th:each="game : ${games}">
+            <td th:text="${game.timeBlock.name().replace('BLOCK_', '') + ':00'}"></td>
+            <td th:text="${game.court}"></td>
+            <td th:text="${game.homeTeam.name}"></td>
+            <td th:text="${game.awayTeam}"></td>
+            <td><span class="badge" th:classappend="${game.status}" th:text="${game.status}"></span></td>
+            <td>
+                <form class="inline" th:action="@{/admin/games/{id}/delete(id=${game.id})}" method="post"
+                      onsubmit="return confirm('Delete this game?')">
+                    <input type="hidden" name="date" th:value="${date}">
+                    <button type="submit" class="delete">Delete</button>
+                </form>
+            </td>
+        </tr>
+    </tbody>
+</table>
+<p class="empty" th:if="${games.isEmpty()}">No games planned for this date.</p>
+
+<!-- Add game form -->
+<div class="add-form">
+    <h2>Add game</h2>
+    <form th:action="@{/admin/games}" method="post">
+        <input type="hidden" name="date" th:value="${date}">
+        <div class="form-row">
+            <label>
+                Time block
+                <select name="timeBlock" required>
+                    <option th:each="tb : ${timeBlocks}" th:value="${tb}" th:text="${tb.name().replace('BLOCK_', '') + ':00'}"></option>
+                </select>
+            </label>
+            <label>
+                Court
+                <select name="court" required>
+                    <option th:each="c : ${courts}" th:value="${c}" th:text="${c}"></option>
+                </select>
+            </label>
+            <label>
+                Home team
+                <select name="homeTeamCode" required>
+                    <option value="">-- select --</option>
+                    <option th:each="team : ${teams}" th:value="${team.code}" th:text="${team.name}"></option>
+                </select>
+            </label>
+            <label>
+                Away team (name)
+                <input type="text" name="awayTeam" placeholder="e.g. VC Leuven" required>
+            </label>
+        </div>
+        <button type="submit">Add game</button>
+    </form>
+</div>
+
+</body>
+</html>
