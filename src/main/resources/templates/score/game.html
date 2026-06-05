@@ -583,7 +583,7 @@
         // Topbar right: set scores always away-home order (away left, home right) with correct colors
         const topbarRight = document.getElementById('topbar-right');
         topbarRight.innerHTML = score.sets.map(s =>
-            `<span class="set-result"><span style="color:${AWAY_COLOR}">${s.away}</span><span style="color:rgba(255,255,255,0.4)">-</span><span style="color:${HOME_COLOR}">${s.home}</span></span>`
+            `<span class="set-result"><span style="color:${HOME_COLOR}">${s.home}</span><span style="color:rgba(255,255,255,0.4)">-</span><span style="color:${AWAY_COLOR}">${s.away}</span></span>`
         ).join('<span style="color:rgba(255,255,255,0.2);margin:0 2px">·</span>');
     }
 
