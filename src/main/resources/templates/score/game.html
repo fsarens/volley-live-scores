@@ -580,11 +580,12 @@
         // Topbar: current set in middle
         document.getElementById('topbar-set').textContent = `Set ${score.currentSet}`;
 
-        // Topbar right: set scores always away-home order (away left, home right) with correct colors
+        // Topbar right: home-away score per set, entire score in the winner's color
         const topbarRight = document.getElementById('topbar-right');
-        topbarRight.innerHTML = score.sets.map(s =>
-            `<span class="set-result"><span style="color:${HOME_COLOR}">${s.home}</span><span style="color:rgba(255,255,255,0.4)">-</span><span style="color:${AWAY_COLOR}">${s.away}</span></span>`
-        ).join('<span style="color:rgba(255,255,255,0.2);margin:0 2px">·</span>');
+        topbarRight.innerHTML = score.sets.map(s => {
+            const winColor = s.home > s.away ? HOME_COLOR : AWAY_COLOR;
+            return `<span class="set-result" style="color:${winColor}">${s.home}-${s.away}</span>`;
+        }).join('<span style="color:rgba(255,255,255,0.2);margin:0 2px">·</span>');
     }
 
     async function startGame() {
