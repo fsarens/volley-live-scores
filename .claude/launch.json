@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "volley-live-scores",
+      "runtimeExecutable": "java",
+      "runtimeArgs": ["-Dspring.profiles.active=local", "-jar", "target/volley-live-scores-0.0.1-SNAPSHOT.jar"],
+      "port": 8080
+    }
+  ]
+}
