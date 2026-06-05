@@ -130,9 +130,18 @@
             cursor: pointer;
             position: relative;
             user-select: none;
-            transition: filter 0.1s;
+            overflow: hidden;
         }
-        .half:active { filter: brightness(1.3); }
+
+        /* Rising fill overlay for press-and-hold */
+        .fill-overlay {
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            height: 0%;
+            transition: height 600ms linear;
+            z-index: 3;
+            pointer-events: none;
+        }
 
         .team-label {
             font-size: clamp(1.4em, 4vw, 2.2em);
@@ -280,16 +289,26 @@
 
 <!-- Court -->
 <div id="court">
-    <div class="half" id="left-half" onclick="addPoint('left')">
+    <div class="half" id="left-half"
+         onpointerdown="startHold('left', event)"
+         onpointerup="cancelHold('left')"
+         onpointercancel="cancelHold('left')"
+         onpointerleave="cancelHold('left')">
         <div class="team-label" id="left-label"></div>
         <div class="set-points" id="left-points">0</div>
+        <div class="fill-overlay" id="left-fill"></div>
     </div>
     <div id="net">
         <button id="undo-btn" onclick="undoPoint()" title="Undo last point">↩</button>
     </div>
-    <div class="half" id="right-half" onclick="addPoint('right')">
+    <div class="half" id="right-half"
+         onpointerdown="startHold('right', event)"
+         onpointerup="cancelHold('right')"
+         onpointercancel="cancelHold('right')"
+         onpointerleave="cancelHold('right')">
         <div class="team-label" id="right-label"></div>
         <div class="set-points" id="right-points">0</div>
+        <div class="fill-overlay" id="right-fill"></div>
     </div>
     <!-- Sets won bar at the bottom, flanking the net -->
     <div id="sets-bar">
@@ -380,6 +399,7 @@
     let pendingPoint = null; // 'home' or 'away'
     let selectedAwayColor = '#c62828';
     let homeLeftSide = true;
+    let holdTimer = null;
 
     // Init color picker
     const picker = document.getElementById('away-color-picker');
@@ -396,6 +416,32 @@
         };
         picker.appendChild(s);
     });
+
+    function startHold(side, event) {
+        event.preventDefault();
+        if (!score) return;
+        if (holdTimer) return; // already holding
+        const fill = document.getElementById(side + '-fill');
+        fill.style.height = '100%'; // triggers CSS transition upward
+        holdTimer = setTimeout(() => {
+            holdTimer = null;
+            // Snap fill back instantly
+            fill.style.transition = 'none';
+            fill.style.height = '0%';
+            requestAnimationFrame(() => {
+                fill.style.transition = 'height 600ms linear';
+            });
+            addPoint(side);
+        }, 600);
+    }
+
+    function cancelHold(side) {
+        if (!holdTimer) return;
+        clearTimeout(holdTimer);
+        holdTimer = null;
+        const fill = document.getElementById(side + '-fill');
+        fill.style.height = '0%'; // CSS transition reverses back down
+    }
 
     async function undoPoint() {
         if (!score) return;
@@ -542,6 +588,10 @@
         document.getElementById('left-points').textContent = leftPoints;
         document.getElementById('right-points').textContent = rightPoints;
 
+        // Fill overlay colors (40% opacity = hex '66')
+        document.getElementById('left-fill').style.background  = leftColor  + '66';
+        document.getElementById('right-fill').style.background = rightColor + '66';
+
         // Sets won at the bottom
         const homeSets = score.sets.filter(s => s.home > s.away).length;
         const awaySets = score.sets.filter(s => s.away > s.home).length;
@@ -603,6 +653,8 @@
             document.getElementById('right-label').textContent = AWAY_NAME;
             document.getElementById('left-label').style.color = HOME_COLOR;
             document.getElementById('left-points').style.color = HOME_COLOR;
+            document.getElementById('left-fill').style.background  = HOME_COLOR + '66';
+            document.getElementById('right-fill').style.background = selectedAwayColor + '66';
         } else {
             // IN_PROGRESS or FINISHED — load current score
             const res = await fetch(`/api/games/${GAME_ID}/score`);
