@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${team.id == null ? 'Add Team' : 'Edit Team'} + ' - Admin'">Team - Admin</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 620px; margin: 40px auto; padding: 0 20px; }
+        h1 { color: #333; }
+        nav { margin-bottom: 16px; font-size: 0.9em; }
+        nav a { color: #0066cc; text-decoration: none; }
+        .error { background: #ffe0e0; border: 1px solid #cc0000; border-radius: 6px; padding: 10px 16px; margin-bottom: 16px; color: #cc0000; }
+        .form-group { margin-bottom: 16px; }
+        label { display: block; font-weight: bold; margin-bottom: 4px; font-size: 0.9em; color: #555; }
+        input[type=text], select { width: 100%; padding: 8px 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 1em; box-sizing: border-box; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        fieldset { border: 1px solid #ddd; border-radius: 6px; padding: 12px 16px; margin-bottom: 16px; }
+        legend { font-weight: bold; color: #555; font-size: 0.9em; padding: 0 6px; }
+        .color-preview { display: inline-block; width: 20px; height: 20px; border-radius: 50%; border: 1px solid #ccc; vertical-align: middle; margin-left: 8px; }
+        .actions { display: flex; gap: 12px; margin-top: 24px; }
+        button[type=submit] { background: #0066cc; color: white; border: none; padding: 10px 24px; border-radius: 4px; cursor: pointer; font-size: 1em; font-weight: bold; }
+        button[type=submit]:hover { background: #0052a3; }
+        a.cancel { color: #666; text-decoration: none; line-height: 2.4; }
+    </style>
+</head>
+<body>
+<nav><a href="/admin/teams">← Teams</a></nav>
+<h1 th:text="${team.id == null ? 'Add Team' : 'Edit Team — ' + team.code}">Team</h1>
+
+<div class="error" th:if="${error}" th:text="${error}"></div>
+
+<form th:action="${team.id == null ? '/admin/teams' : '/admin/teams/' + team.id}"
+      method="post">
+
+    <div class="form-row">
+        <div class="form-group">
+            <label>Code</label>
+            <input type="text" name="code" th:value="${team.code}" placeholder="e.g. DA" required maxlength="10">
+        </div>
+        <div class="form-group">
+            <label>League</label>
+            <select name="league" required>
+                <option th:each="l : ${leagues}"
+                        th:value="${l}"
+                        th:text="${l}"
+                        th:selected="${team.league == l}"></option>
+            </select>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label>Name</label>
+        <input type="text" name="name" th:value="${team.name}" placeholder="e.g. Dames A - Promo 2B" required>
+    </div>
+
+    <div class="form-row">
+        <div class="form-group">
+            <label>Reeks (for ranking fetch)</label>
+            <input type="text" name="reeks" th:value="${team.reeks}" placeholder="e.g. ADP2-B">
+        </div>
+        <div class="form-group">
+            <label>Color
+                <span class="color-preview" id="color-preview"
+                      th:style="${'background:' + (team.color ?: '#1565c0')}"></span>
+            </label>
+            <select name="color" id="color-select" onchange="document.getElementById('color-preview').style.background=this.value" required>
+                <option th:each="c : ${colors}"
+                        th:value="${c[0]}"
+                        th:text="${c[1]}"
+                        th:selected="${team.color == c[0]}"></option>
+            </select>
+        </div>
+    </div>
+
+    <fieldset>
+        <legend>Sponsor 1</legend>
+        <div class="form-row">
+            <div class="form-group">
+                <label>Name</label>
+                <input type="text" name="sponsor1Name" th:value="${team.sponsor?.name}" placeholder="e.g. Sciens Logistics">
+            </div>
+            <div class="form-group">
+                <label>Logo path</label>
+                <input type="text" name="sponsor1Logo" th:value="${team.sponsor?.logo}" placeholder="e.g. sponsor/logo.png">
+            </div>
+        </div>
+    </fieldset>
+
+    <fieldset>
+        <legend>Sponsor 2</legend>
+        <div class="form-row">
+            <div class="form-group">
+                <label>Name</label>
+                <input type="text" name="sponsor2Name" th:value="${team.sponsor2?.name}" placeholder="e.g. Delhaize">
+            </div>
+            <div class="form-group">
+                <label>Logo path</label>
+                <input type="text" name="sponsor2Logo" th:value="${team.sponsor2?.logo}" placeholder="e.g. sponsor/logo.png">
+            </div>
+        </div>
+    </fieldset>
+
+    <div class="actions">
+        <button type="submit" th:text="${team.id == null ? 'Add team' : 'Save changes'}">Save</button>
+        <a class="cancel" href="/admin/teams">Cancel</a>
+    </div>
+</form>
+</body>
+</html>

@@ -27,6 +27,9 @@ public class Team implements Serializable {
 	/* team color (hex) for the scoring UI */
 	private String color = "#1565c0";
 
+	/* soft delete — inactive teams are hidden from game planning and ranking */
+	private boolean active = true;
+
 	/* code of the reeks for this team with volleyscore */
 	private String reeks;
 
@@ -107,6 +110,9 @@ public class Team implements Serializable {
 
 	public String getColor() { return color; }
 	public void setColor(String color) { this.color = color; }
+
+	public boolean isActive() { return active; }
+	public void setActive(boolean active) { this.active = active; }
 
 	public Sponsor getSponsor2() {
 		return sponsor2;

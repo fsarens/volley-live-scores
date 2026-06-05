@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Teams - Admin</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 900px; margin: 40px auto; padding: 0 20px; }
+        h1 { color: #333; display: flex; align-items: center; justify-content: space-between; }
+        .btn-add { background: #0066cc; color: white; padding: 8px 16px; border-radius: 4px; text-decoration: none; font-size: 0.9em; }
+        table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+        th { background: #f0f0f0; padding: 8px 12px; text-align: left; border-bottom: 2px solid #ccc; }
+        td { padding: 8px 12px; border-bottom: 1px solid #eee; vertical-align: middle; }
+        tr.inactive td { opacity: 0.45; }
+        .color-dot { display: inline-block; width: 16px; height: 16px; border-radius: 50%; border: 1px solid #ccc; vertical-align: middle; margin-right: 6px; }
+        form.inline { display: inline; }
+        .btn { padding: 5px 12px; border: none; border-radius: 4px; cursor: pointer; font-size: 0.85em; font-weight: bold; }
+        .btn-edit { background: #f0f0f0; color: #333; text-decoration: none; padding: 5px 12px; border-radius: 4px; font-size: 0.85em; }
+        .btn-deactivate { background: #fff0e0; color: #cc6600; }
+        .btn-reactivate { background: #e0ffe0; color: #006600; }
+        .badge-inactive { background: #eee; color: #999; font-size: 0.75em; padding: 2px 6px; border-radius: 4px; }
+        nav { margin-bottom: 16px; font-size: 0.9em; }
+        nav a { color: #0066cc; text-decoration: none; }
+    </style>
+</head>
+<body>
+<nav><a href="/admin">← Game Planning</a></nav>
+<h1>Teams <a class="btn-add" href="/admin/teams/new">+ Add team</a></h1>
+
+<table>
+    <thead>
+        <tr>
+            <th>Code</th>
+            <th>Name</th>
+            <th>League</th>
+            <th>Reeks</th>
+            <th>Color</th>
+            <th>Sponsors</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr th:each="team : ${teams}" th:classappend="${!team.active} ? 'inactive'">
+            <td>
+                <strong th:text="${team.code}"></strong>
+                <span class="badge-inactive" th:if="${!team.active}">inactive</span>
+            </td>
+            <td th:text="${team.name}"></td>
+            <td th:text="${team.league}"></td>
+            <td th:text="${team.reeks ?: '-'}"></td>
+            <td>
+                <span class="color-dot" th:style="${'background:' + (team.color ?: '#ccc')}"></span>
+                <span th:text="${team.color ?: '-'}"></span>
+            </td>
+            <td>
+                <span th:if="${team.sponsor != null}" th:text="${team.sponsor.name}"></span>
+                <span th:if="${team.sponsor != null and team.sponsor2 != null}"> · </span>
+                <span th:if="${team.sponsor2 != null}" th:text="${team.sponsor2.name}"></span>
+            </td>
+            <td style="white-space: nowrap">
+                <a class="btn-edit" th:href="@{/admin/teams/{id}/edit(id=${team.id})}">Edit</a>
+                &nbsp;
+                <form class="inline" th:if="${team.active}"
+                      th:action="@{/admin/teams/{id}/deactivate(id=${team.id})}" method="post"
+                      onsubmit="return confirm('Deactivate this team?')">
+                    <button type="submit" class="btn btn-deactivate">Deactivate</button>
+                </form>
+                <form class="inline" th:if="${!team.active}"
+                      th:action="@{/admin/teams/{id}/reactivate(id=${team.id})}" method="post">
+                    <button type="submit" class="btn btn-reactivate">Reactivate</button>
+                </form>
+            </td>
+        </tr>
+    </tbody>
+</table>
+</body>
+</html>

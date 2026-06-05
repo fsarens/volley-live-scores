@@ -30,10 +30,10 @@ class TeamServiceTest {
     }
 
     @Test
-    void getAllTeams_returnsAllTeams() {
+    void getAllTeams_returnsOnlyActiveTeams() {
         Team da = team("DA", "Dames A", League.VVB);
         Team ha = team("HA", "Heren A", League.VVB);
-        when(teamRepository.findAll()).thenReturn(List.of(da, ha));
+        when(teamRepository.findByActiveTrueOrderByNameAsc()).thenReturn(List.of(da, ha));
 
         List<Team> result = teamService.getAllTeams();
 
