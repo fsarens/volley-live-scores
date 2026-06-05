@@ -113,11 +113,33 @@
             line-height: 1;
             text-shadow: 0 0 30px rgba(0,0,0,0.7), 0 4px 8px rgba(0,0,0,0.9);
         }
-        .set-score {
-            font-size: clamp(1.2em, 4vw, 2em);
-            margin-top: 8px;
-            opacity: 0.75;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+        /* Sets won — shown at bottom flanking the net */
+        #sets-bar {
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            height: 52px;
+            display: flex;
+            align-items: center;
+            z-index: 5;
+            pointer-events: none;
+        }
+        .sets-won {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            font-size: clamp(1.4em, 4vw, 2.2em);
+            font-weight: 900;
+            text-shadow: 0 2px 6px rgba(0,0,0,0.9);
+        }
+        #left-sets-won { justify-content: flex-end; padding-right: 20px; }
+        #right-sets-won { justify-content: flex-start; padding-left: 20px; }
+        #sets-label {
+            font-size: 0.7em;
+            color: rgba(255,255,255,0.4);
+            white-space: nowrap;
+            width: 60px;
+            text-align: center;
         }
 
         /* Top bar */
@@ -154,6 +176,18 @@
         .modal h2 { margin-bottom: 16px; font-size: 1.1em; color: #90caf9; }
         .modal p { margin-bottom: 20px; font-size: 1.1em; }
         .modal-buttons { display: flex; gap: 12px; justify-content: flex-end; }
+        /* Court-aligned score row in confirmation dialogs */
+        .confirm-score {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            gap: 8px;
+        }
+        .confirm-team { font-size: 1em; font-weight: bold; flex: 1; }
+        .confirm-team.left { text-align: left; }
+        .confirm-team.right { text-align: right; }
+        .confirm-points { font-size: 2em; font-weight: 900; text-align: center; white-space: nowrap; }
         .btn { padding: 10px 20px; border: none; border-radius: 6px; font-size: 1em; cursor: pointer; font-weight: bold; }
         .btn-primary { background: #1565c0; color: #fff; }
         .btn-secondary { background: rgba(255,255,255,0.1); color: #fff; }
@@ -213,13 +247,17 @@
     <div class="half" id="left-half" onclick="addPoint('left')">
         <div class="team-label" id="left-label"></div>
         <div class="set-points" id="left-points">0</div>
-        <div class="set-score" id="left-sets"></div>
     </div>
     <div id="net"></div>
     <div class="half" id="right-half" onclick="addPoint('right')">
         <div class="team-label" id="right-label"></div>
         <div class="set-points" id="right-points">0</div>
-        <div class="set-score" id="right-sets"></div>
+    </div>
+    <!-- Sets won bar at the bottom, flanking the net -->
+    <div id="sets-bar">
+        <div class="sets-won" id="left-sets-won"></div>
+        <div id="sets-label">sets</div>
+        <div class="sets-won" id="right-sets-won"></div>
     </div>
 </div>
 
@@ -251,8 +289,12 @@
 <!-- Set end confirmation modal -->
 <div class="modal-overlay" id="set-confirm-modal">
     <div class="modal">
-        <h2>Set End</h2>
-        <p id="set-confirm-msg"></p>
+        <h2 id="set-confirm-title">Set End</h2>
+        <div class="confirm-score">
+            <div class="confirm-team left" id="set-confirm-left"></div>
+            <div class="confirm-points" id="set-confirm-points"></div>
+            <div class="confirm-team right" id="set-confirm-right"></div>
+        </div>
         <div class="modal-buttons">
             <button class="btn btn-secondary" onclick="cancelPoint()">Cancel</button>
             <button class="btn btn-primary" onclick="confirmPoint()">Confirm</button>
@@ -264,7 +306,11 @@
 <div class="modal-overlay" id="game-confirm-modal">
     <div class="modal">
         <h2>Game Over</h2>
-        <p id="game-confirm-msg"></p>
+        <div class="confirm-score">
+            <div class="confirm-team left" id="game-confirm-left"></div>
+            <div class="confirm-points" id="game-confirm-points"></div>
+            <div class="confirm-team right" id="game-confirm-right"></div>
+        </div>
         <div class="modal-buttons">
             <button class="btn btn-secondary" onclick="cancelPoint()">Cancel</button>
             <button class="btn btn-danger" onclick="confirmPoint()">End Game</button>
@@ -313,6 +359,12 @@
         picker.appendChild(s);
     });
 
+    function setConfirmEl(id, name, color) {
+        const el = document.getElementById(id);
+        el.textContent = name;
+        el.style.color = color;
+    }
+
     function selectSide(isHomeLeft) {
         homeLeftSide = isHomeLeft;
         document.getElementById('side-left').classList.toggle('active', isHomeLeft);
@@ -341,19 +393,32 @@
             ? (score.homeLeftSide ? 'home' : 'away')
             : (score.homeLeftSide ? 'away' : 'home');
 
+        const leftIsHome = score.homeLeftSide;
+        const leftName  = leftIsHome ? HOME_CODE : AWAY_NAME;
+        const rightName = leftIsHome ? AWAY_NAME  : HOME_CODE;
+        const leftColor  = leftIsHome ? HOME_COLOR : score.awayColor;
+        const rightColor = leftIsHome ? score.awayColor : HOME_COLOR;
+
         if (wouldEndMatch(score, team)) {
             pendingPoint = team;
             const homeSets = score.sets.filter(x => x.home > x.away).length + (team === 'home' ? 1 : 0);
             const awaySets = score.sets.filter(x => x.away > x.home).length + (team === 'away' ? 1 : 0);
-            document.getElementById('game-confirm-msg').textContent =
-                `Game ends: ${HOME_CODE} ${homeSets} - ${awaySets} ${AWAY_NAME}. Confirm?`;
+            const leftSets  = leftIsHome ? homeSets : awaySets;
+            const rightSets = leftIsHome ? awaySets : homeSets;
+            setConfirmEl('game-confirm-left',   leftName,  leftColor);
+            setConfirmEl('game-confirm-right',  rightName, rightColor);
+            document.getElementById('game-confirm-points').textContent = `${leftSets} - ${rightSets}`;
             document.getElementById('game-confirm-modal').classList.add('active');
         } else if (wouldEndSet(score, team)) {
             pendingPoint = team;
             const h = score.currentSetHome + (team === 'home' ? 1 : 0);
             const a = score.currentSetAway + (team === 'away' ? 1 : 0);
-            document.getElementById('set-confirm-msg').textContent =
-                `Set ${score.currentSet} ends: ${h}-${a}. Confirm?`;
+            const leftPts  = leftIsHome ? h : a;
+            const rightPts = leftIsHome ? a : h;
+            document.getElementById('set-confirm-title').textContent = `Set ${score.currentSet} End`;
+            setConfirmEl('set-confirm-left',  leftName,  leftColor);
+            setConfirmEl('set-confirm-right', rightName, rightColor);
+            document.getElementById('set-confirm-points').textContent = `${leftPts} - ${rightPts}`;
             document.getElementById('set-confirm-modal').classList.add('active');
         } else {
             await sendPoint(team);
@@ -430,16 +495,20 @@
         document.getElementById('left-points').textContent = leftPoints;
         document.getElementById('right-points').textContent = rightPoints;
 
-        // Set scores
+        // Sets won at the bottom
         const homeSets = score.sets.filter(s => s.home > s.away).length;
         const awaySets = score.sets.filter(s => s.away > s.home).length;
-        const leftSets = leftIsHome ? homeSets : awaySets;
+        const leftSets  = leftIsHome ? homeSets : awaySets;
         const rightSets = leftIsHome ? awaySets : homeSets;
-        document.getElementById('left-sets').textContent = `Set ${score.currentSet}  ·  ${leftSets}-${rightSets}`;
-        document.getElementById('right-sets').textContent = `Set ${score.currentSet}  ·  ${rightSets}-${leftSets}`;
+        const leftSetsEl  = document.getElementById('left-sets-won');
+        const rightSetsEl = document.getElementById('right-sets-won');
+        leftSetsEl.textContent  = leftSets;
+        leftSetsEl.style.color  = leftColor;
+        rightSetsEl.textContent = rightSets;
+        rightSetsEl.style.color = rightColor;
 
         document.getElementById('topbar-status').textContent =
-            score.sets.map(s => s.home + '-' + s.away).join('  ');
+            `Set ${score.currentSet}  ·  ` + score.sets.map(s => s.home + '-' + s.away).join('  ');
     }
 
     async function startGame() {
