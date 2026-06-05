@@ -201,3 +201,4 @@ MongoDB collection: `scores` · One document per game, created when scoring star
 - [ ] **Dashboard** — big-screen display showing 5 concurrent games with live scores, optimised for OptiSigns on Raspberry Pi, auto-refresh every 5 seconds
 - [ ] **Cloud hosting** — deployment to Railway or Render
 - [ ] **VolleyScore game fetching API** — parked until September when the new season starts
+- [ ] **Set 5 side handling** — at the start of set 5, scorer chooses which side each team is on (instead of automatic switch); teams switch sides mid-set when either team reaches 8 points
