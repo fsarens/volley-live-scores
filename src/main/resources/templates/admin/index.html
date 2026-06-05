@@ -51,6 +51,7 @@
             <th>Away team</th>
             <th>Status</th>
             <th></th>
+            <th></th>
         </tr>
     </thead>
     <tbody>
@@ -60,6 +61,7 @@
             <td th:text="${game.homeTeam.name}"></td>
             <td th:text="${game.awayTeam}"></td>
             <td><span class="badge" th:classappend="${game.status}" th:text="${game.status}"></span></td>
+            <td><a th:href="@{/score/{id}(id=${game.id})}" target="_blank" style="font-size:0.85em; color:#0066cc;">Score ↗</a></td>
             <td>
                 <form class="inline" th:action="@{/admin/games/{id}/delete(id=${game.id})}" method="post"
                       onsubmit="return confirm('Delete this game?')">

@@ -1,0 +1,91 @@
+package be.volley.live.controller;
+
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import be.volley.live.exception.ScoreConflictException;
+import be.volley.live.model.Game;
+import be.volley.live.model.Score;
+import be.volley.live.model.SetScore;
+import be.volley.live.service.GameService;
+import be.volley.live.service.ScoreService;
+
+@RestController
+@RequestMapping("/api/games")
+public class ScoreController {
+
+    private final GameService gameService;
+    private final ScoreService scoreService;
+
+    public ScoreController(GameService gameService, ScoreService scoreService) {
+        this.gameService = gameService;
+        this.scoreService = scoreService;
+    }
+
+    /** All games for today ordered by time block + court */
+    @GetMapping("/today")
+    public List<Game> today() {
+        return gameService.getGamesByDate(LocalDate.now());
+    }
+
+    /** Current score for a game */
+    @GetMapping("/{id}/score")
+    public ResponseEntity<Score> getScore(@PathVariable String id) {
+        return scoreService.getScore(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    /** Start a game — transition SCHEDULED → IN_PROGRESS, create Score */
+    @PostMapping("/{id}/start")
+    public Score startGame(@PathVariable String id, @RequestBody StartGameRequest request) {
+        Score initial = new Score(id);
+        initial.setHomeLeftSide(request.homeLeftSide());
+        initial.setAwayColor(request.awayColor());
+        if (request.sets() != null) {
+            initial.setSets(request.sets());
+            initial.setCurrentSet(request.sets().size() + 1);
+        }
+        return scoreService.startGame(id, initial);
+    }
+
+    /** Add a point to the home team */
+    @PostMapping("/{id}/point/home")
+    public ResponseEntity<Score> addPointHome(@PathVariable String id,
+                                               @RequestBody PointRequest request) {
+        try {
+            return ResponseEntity.ok(scoreService.addPointHome(id, request.version()));
+        } catch (ScoreConflictException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getCurrentScore());
+        }
+    }
+
+    /** Add a point to the away team */
+    @PostMapping("/{id}/point/away")
+    public ResponseEntity<Score> addPointAway(@PathVariable String id,
+                                               @RequestBody PointRequest request) {
+        try {
+            return ResponseEntity.ok(scoreService.addPointAway(id, request.version()));
+        } catch (ScoreConflictException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getCurrentScore());
+        }
+    }
+
+    /** Undo last point */
+    @PostMapping("/{id}/undo")
+    public Score undo(@PathVariable String id) {
+        return scoreService.undoLastPoint(id);
+    }
+
+    // --- Request records ---
+
+    record StartGameRequest(boolean homeLeftSide, String awayColor, List<SetScore> sets) {}
+
+    record PointRequest(int version) {}
+
+}

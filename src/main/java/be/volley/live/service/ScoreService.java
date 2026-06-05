@@ -4,6 +4,7 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 
+import be.volley.live.exception.ScoreConflictException;
 import be.volley.live.model.Game;
 import be.volley.live.model.GameStatus;
 import be.volley.live.model.Score;
@@ -49,18 +50,22 @@ public class ScoreService {
 
     /**
      * Add a point to the home team.
+     * expectedVersion is used for optimistic concurrency — throws ScoreConflictException on mismatch.
      */
-    public Score addPointHome(String gameId) {
+    public Score addPointHome(String gameId, int expectedVersion) {
         Score score = getOrThrow(gameId);
+        checkVersion(score, expectedVersion);
         score.setCurrentSetHome(score.getCurrentSetHome() + 1);
         return checkSetEnd(score, gameId);
     }
 
     /**
      * Add a point to the away team.
+     * expectedVersion is used for optimistic concurrency — throws ScoreConflictException on mismatch.
      */
-    public Score addPointAway(String gameId) {
+    public Score addPointAway(String gameId, int expectedVersion) {
         Score score = getOrThrow(gameId);
+        checkVersion(score, expectedVersion);
         score.setCurrentSetAway(score.getCurrentSetAway() + 1);
         return checkSetEnd(score, gameId);
     }
@@ -85,6 +90,7 @@ public class ScoreService {
             score.setCurrentSetAway(score.getCurrentSetAway() - 1);
         }
 
+        score.setVersion(score.getVersion() + 1);
         return scoreRepository.save(score);
     }
 
@@ -132,6 +138,12 @@ public class ScoreService {
     private Score getOrThrow(String gameId) {
         return scoreRepository.findByGameId(gameId)
                 .orElseThrow(() -> new IllegalArgumentException("Score not found for game: " + gameId));
+    }
+
+    private void checkVersion(Score score, int expectedVersion) {
+        if (score.getVersion() != expectedVersion) {
+            throw new ScoreConflictException(score);
+        }
     }
 
 }

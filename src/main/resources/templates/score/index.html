@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Volley Live Scores</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background: #0d2137; color: #fff; font-family: Arial, sans-serif; padding: 16px; min-height: 100vh; }
+        h1 { font-size: 1.2em; text-align: center; margin-bottom: 16px; color: #90caf9; letter-spacing: 1px; }
+        .game-card {
+            background: rgba(255,255,255,0.07);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 10px;
+            padding: 14px 16px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .game-card:hover { background: rgba(255,255,255,0.13); }
+        .game-card:active { background: rgba(255,255,255,0.18); }
+        .game-meta { font-size: 0.75em; color: #90caf9; margin-bottom: 6px; }
+        .game-teams { display: flex; align-items: center; justify-content: space-between; font-size: 1.1em; font-weight: bold; }
+        .team-home { }
+        .team-vs { color: #555; font-size: 0.85em; font-weight: normal; margin: 0 8px; }
+        .team-away { color: #ccc; }
+        .game-score { font-size: 0.85em; margin-top: 6px; color: #aaa; }
+        .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.7em; font-weight: bold; margin-left: 8px; vertical-align: middle; }
+        .SCHEDULED  { background: #1a3a5c; color: #90caf9; }
+        .IN_PROGRESS { background: #5c3000; color: #ffb74d; }
+        .FINISHED    { background: #1a3c1a; color: #81c784; }
+        .empty { text-align: center; color: #555; margin-top: 40px; font-size: 1.1em; }
+        a { text-decoration: none; color: inherit; }
+    </style>
+</head>
+<body>
+<h1>🏐 Today's Games</h1>
+
+<div th:if="${games.isEmpty()}" class="empty">No games planned for today</div>
+
+<a th:each="game : ${games}" th:href="@{/score/{id}(id=${game.id})}" class="game-card">
+    <div class="game-meta">
+        <span th:text="${game.timeBlock.name().replace('BLOCK_', '') + ':00'}"></span>
+        &nbsp;·&nbsp;
+        <span th:text="${'Court ' + game.court}"></span>
+        <span class="badge" th:classappend="${game.status}" th:text="${game.status.name().replace('_',' ')}"></span>
+    </div>
+    <div class="game-teams">
+        <span class="team-home"
+              th:text="${game.homeTeam.name}"
+              th:style="${'color: ' + (game.homeTeam.color ?: '#ffffff')}"></span>
+        <span class="team-vs">vs</span>
+        <span class="team-away" th:text="${game.awayTeam}"></span>
+    </div>
+    <div class="game-score" th:if="${game.status.name() == 'IN_PROGRESS' or game.status.name() == 'FINISHED'}">
+        <!-- Score loaded dynamically via JS -->
+        <span th:id="${'score-' + game.id}">loading...</span>
+    </div>
+</a>
+
+<script>
+    // Auto-refresh scores for in-progress and finished games
+    async function refreshScores() {
+        const response = await fetch('/api/games/today');
+        if (!response.ok) return;
+        const games = await response.json();
+        games.forEach(game => {
+            const el = document.getElementById('score-' + game.id);
+            if (!el) return;
+            // Fetch score separately
+            fetch('/api/games/' + game.id + '/score')
+                .then(r => r.ok ? r.json() : null)
+                .then(score => {
+                    if (!score) { el.textContent = ''; return; }
+                    const sets = score.sets.map(s => s.home + '-' + s.away).join('  ');
+                    const current = score.currentSetHome + '-' + score.currentSetAway;
+                    if (game.status === 'IN_PROGRESS') {
+                        el.textContent = (sets ? sets + '  |  ' : '') + '▶ ' + current;
+                    } else {
+                        el.textContent = sets;
+                    }
+                });
+        });
+    }
+
+    refreshScores();
+    setInterval(refreshScores, 5000);
+</script>
+</body>
+</html>

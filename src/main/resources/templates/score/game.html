@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title th:text="${game.homeTeam.name + ' vs ' + game.awayTeam}">Game</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            background: #0d2137;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            height: 100dvh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Force landscape hint on portrait */
+        #rotate-hint {
+            display: none;
+            position: fixed; inset: 0;
+            background: #0d2137;
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 16px;
+            font-size: 1.2em;
+            color: #90caf9;
+        }
+        @media (orientation: portrait) {
+            #rotate-hint { display: flex; }
+        }
+
+        /* Court */
+        #court {
+            flex: 1;
+            display: flex;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Court lines background */
+        #court::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background:
+                /* attack lines */
+                linear-gradient(to right, transparent 24%, rgba(255,255,255,0.08) 24%, rgba(255,255,255,0.08) 24.5%, transparent 24.5%),
+                linear-gradient(to right, transparent 75.5%, rgba(255,255,255,0.08) 75.5%, rgba(255,255,255,0.08) 76%, transparent 76%),
+                /* outer border */
+                linear-gradient(to right, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.12) 0.5%, transparent 0.5%),
+                linear-gradient(to right, transparent 99.5%, rgba(255,255,255,0.12) 99.5%),
+                linear-gradient(to bottom, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.12) 0.8%, transparent 0.8%),
+                linear-gradient(to bottom, transparent 99.2%, rgba(255,255,255,0.12) 99.2%);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* Net (center divider) */
+        #net {
+            position: absolute;
+            left: 50%;
+            top: 0; bottom: 0;
+            width: 6px;
+            transform: translateX(-50%);
+            background: rgba(255,255,255,0.35);
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        #net::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: repeating-linear-gradient(
+                to bottom,
+                transparent 0px, transparent 8px,
+                rgba(0,0,0,0.3) 8px, rgba(0,0,0,0.3) 10px
+            );
+        }
+
+        /* Court halves */
+        .half {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+            user-select: none;
+            transition: filter 0.1s;
+        }
+        .half:active { filter: brightness(1.3); }
+
+        .team-label {
+            font-size: clamp(1em, 3vw, 1.4em);
+            font-weight: bold;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            text-shadow: 0 0 10px rgba(0,0,0,0.8), 0 2px 4px rgba(0,0,0,0.9);
+        }
+        .set-points {
+            font-size: clamp(4em, 15vw, 9em);
+            font-weight: 900;
+            line-height: 1;
+            text-shadow: 0 0 30px rgba(0,0,0,0.7), 0 4px 8px rgba(0,0,0,0.9);
+        }
+        .set-score {
+            font-size: clamp(1.2em, 4vw, 2em);
+            margin-top: 8px;
+            opacity: 0.75;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+        }
+
+        /* Top bar */
+        #topbar {
+            background: rgba(0,0,0,0.4);
+            padding: 6px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.8em;
+            color: #90caf9;
+            z-index: 20;
+        }
+        #topbar a { color: #90caf9; text-decoration: none; }
+
+        /* Modals */
+        .modal-overlay {
+            display: none;
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.75);
+            z-index: 50;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal {
+            background: #0d2137;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 12px;
+            padding: 24px;
+            min-width: 300px;
+            max-width: 90vw;
+        }
+        .modal h2 { margin-bottom: 16px; font-size: 1.1em; color: #90caf9; }
+        .modal p { margin-bottom: 20px; font-size: 1.1em; }
+        .modal-buttons { display: flex; gap: 12px; justify-content: flex-end; }
+        .btn { padding: 10px 20px; border: none; border-radius: 6px; font-size: 1em; cursor: pointer; font-weight: bold; }
+        .btn-primary { background: #1565c0; color: #fff; }
+        .btn-secondary { background: rgba(255,255,255,0.1); color: #fff; }
+        .btn-danger { background: #c62828; color: #fff; }
+
+        /* Start modal form */
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; margin-bottom: 6px; color: #90caf9; font-size: 0.85em; }
+        .form-group input, .form-group select { width: 100%; padding: 8px 10px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; color: #fff; font-size: 1em; }
+        .side-toggle { display: flex; gap: 8px; }
+        .side-btn { flex: 1; padding: 10px; border: 2px solid rgba(255,255,255,0.2); border-radius: 6px; background: transparent; color: #fff; cursor: pointer; font-size: 0.95em; }
+        .side-btn.active { border-color: #1565c0; background: rgba(21,101,192,0.3); }
+        .color-picker { display: flex; gap: 8px; flex-wrap: wrap; }
+        .color-swatch { width: 36px; height: 36px; border-radius: 50%; border: 3px solid transparent; cursor: pointer; transition: border-color 0.15s; }
+        .color-swatch.selected { border-color: #fff; }
+        .color-swatch.white-swatch { border-color: rgba(255,255,255,0.3); }
+
+        /* Conflict banner */
+        #conflict-banner {
+            display: none;
+            position: fixed; top: 0; left: 0; right: 0;
+            background: #c62828;
+            color: #fff;
+            padding: 10px 16px;
+            text-align: center;
+            font-weight: bold;
+            z-index: 60;
+            animation: slideDown 0.3s ease;
+        }
+        @keyframes slideDown { from { transform: translateY(-100%); } to { transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+<!-- Rotate hint -->
+<div id="rotate-hint">
+    <div style="font-size: 2em">📱↔️</div>
+    <div>Please rotate your device to landscape</div>
+</div>
+
+<!-- Conflict banner -->
+<div id="conflict-banner"></div>
+
+<!-- Top bar -->
+<div id="topbar">
+    <a href="/score">← Games</a>
+    <span id="topbar-info">
+        <span th:text="${game.timeBlock.name().replace('BLOCK_', '') + ':00'}"></span>
+        &nbsp;·&nbsp;
+        <span th:text="${game.court}"></span>
+    </span>
+    <span id="topbar-status"></span>
+</div>
+
+<!-- Court -->
+<div id="court">
+    <div class="half" id="left-half" onclick="addPoint('left')">
+        <div class="team-label" id="left-label"></div>
+        <div class="set-points" id="left-points">0</div>
+        <div class="set-score" id="left-sets"></div>
+    </div>
+    <div id="net"></div>
+    <div class="half" id="right-half" onclick="addPoint('right')">
+        <div class="team-label" id="right-label"></div>
+        <div class="set-points" id="right-points">0</div>
+        <div class="set-score" id="right-sets"></div>
+    </div>
+</div>
+
+<!-- Start game modal -->
+<div class="modal-overlay" id="start-modal">
+    <div class="modal">
+        <h2>Start Game</h2>
+        <div class="form-group">
+            <label>Home team side</label>
+            <div class="side-toggle">
+                <button class="side-btn active" id="side-left" onclick="selectSide(true)">⬅ Home on Left</button>
+                <button class="side-btn" id="side-right" onclick="selectSide(false)">Home on Right ➡</button>
+            </div>
+        </div>
+        <div class="form-group">
+            <label>Away team color</label>
+            <div class="color-picker" id="away-color-picker"></div>
+        </div>
+        <div class="form-group">
+            <label>Late join? Enter completed set scores (e.g. 25-18, 18-25)</label>
+            <input type="text" id="late-sets" placeholder="Leave empty if starting from scratch">
+        </div>
+        <div class="modal-buttons">
+            <button class="btn btn-primary" onclick="startGame()">Start Scoring</button>
+        </div>
+    </div>
+</div>
+
+<!-- Set end confirmation modal -->
+<div class="modal-overlay" id="set-confirm-modal">
+    <div class="modal">
+        <h2>Set End</h2>
+        <p id="set-confirm-msg"></p>
+        <div class="modal-buttons">
+            <button class="btn btn-secondary" onclick="cancelPoint()">Cancel</button>
+            <button class="btn btn-primary" onclick="confirmPoint()">Confirm</button>
+        </div>
+    </div>
+</div>
+
+<!-- Game end confirmation modal -->
+<div class="modal-overlay" id="game-confirm-modal">
+    <div class="modal">
+        <h2>Game Over</h2>
+        <p id="game-confirm-msg"></p>
+        <div class="modal-buttons">
+            <button class="btn btn-secondary" onclick="cancelPoint()">Cancel</button>
+            <button class="btn btn-danger" onclick="confirmPoint()">End Game</button>
+        </div>
+    </div>
+</div>
+
+<script th:inline="javascript">
+    const GAME_ID = /*[[${gameId}]]*/ '';
+    const HOME_NAME = /*[[${game.homeTeam.name}]]*/ '';
+    const HOME_CODE = /*[[${game.homeTeam.code}]]*/ '';
+    const HOME_COLOR = /*[[${game.homeTeam.color ?: '#1565c0'}]]*/ '#1565c0';
+    const AWAY_NAME = /*[[${game.awayTeam}]]*/ '';
+    const GAME_STATUS = /*[[${game.status.name()}]]*/ 'SCHEDULED';
+
+    const COLORS = [
+        {hex: '#333333', name: 'Charcoal'},
+        {hex: '#ffffff', name: 'White'},
+        {hex: '#1565c0', name: 'Blue'},
+        {hex: '#c62828', name: 'Red'},
+        {hex: '#2e7d32', name: 'Green'},
+        {hex: '#e65100', name: 'Orange'},
+        {hex: '#f9a825', name: 'Yellow'},
+        {hex: '#6a1b9a', name: 'Purple'}
+    ];
+
+    // State
+    let score = null;
+    let pendingPoint = null; // 'home' or 'away'
+    let selectedAwayColor = '#c62828';
+    let homeLeftSide = true;
+
+    // Init color picker
+    const picker = document.getElementById('away-color-picker');
+    COLORS.forEach(c => {
+        const s = document.createElement('div');
+        s.className = 'color-swatch' + (c.hex === '#ffffff' ? ' white-swatch' : '');
+        s.style.background = c.hex;
+        s.title = c.name;
+        if (c.hex === selectedAwayColor) s.classList.add('selected');
+        s.onclick = () => {
+            document.querySelectorAll('.color-swatch').forEach(x => x.classList.remove('selected'));
+            s.classList.add('selected');
+            selectedAwayColor = c.hex;
+        };
+        picker.appendChild(s);
+    });
+
+    function selectSide(isHomeLeft) {
+        homeLeftSide = isHomeLeft;
+        document.getElementById('side-left').classList.toggle('active', isHomeLeft);
+        document.getElementById('side-right').classList.toggle('active', !isHomeLeft);
+    }
+
+    // Determine if a point would end the set
+    function wouldEndSet(s, side) {
+        const h = s.currentSetHome + (side === 'home' ? 1 : 0);
+        const a = s.currentSetAway + (side === 'away' ? 1 : 0);
+        const limit = s.currentSet === 5 ? 15 : 25;
+        return (h >= limit && h - a >= 2) || (a >= limit && a - h >= 2);
+    }
+
+    // Determine if a point would end the match
+    function wouldEndMatch(s, side) {
+        if (!wouldEndSet(s, side)) return false;
+        const homeSets = s.sets.filter(x => x.home > x.away).length + (side === 'home' ? 1 : 0);
+        const awaySets = s.sets.filter(x => x.away > x.home).length + (side === 'away' ? 1 : 0);
+        return homeSets === 3 || awaySets === 3;
+    }
+
+    async function addPoint(side) {
+        if (!score) return;
+        const team = side === 'left'
+            ? (score.homeLeftSide ? 'home' : 'away')
+            : (score.homeLeftSide ? 'away' : 'home');
+
+        if (wouldEndMatch(score, team)) {
+            pendingPoint = team;
+            const homeSets = score.sets.filter(x => x.home > x.away).length + (team === 'home' ? 1 : 0);
+            const awaySets = score.sets.filter(x => x.away > x.home).length + (team === 'away' ? 1 : 0);
+            document.getElementById('game-confirm-msg').textContent =
+                `Game ends: ${HOME_CODE} ${homeSets} - ${awaySets} ${AWAY_NAME}. Confirm?`;
+            document.getElementById('game-confirm-modal').classList.add('active');
+        } else if (wouldEndSet(score, team)) {
+            pendingPoint = team;
+            const h = score.currentSetHome + (team === 'home' ? 1 : 0);
+            const a = score.currentSetAway + (team === 'away' ? 1 : 0);
+            document.getElementById('set-confirm-msg').textContent =
+                `Set ${score.currentSet} ends: ${h}-${a}. Confirm?`;
+            document.getElementById('set-confirm-modal').classList.add('active');
+        } else {
+            await sendPoint(team);
+        }
+    }
+
+    function cancelPoint() {
+        pendingPoint = null;
+        document.getElementById('set-confirm-modal').classList.remove('active');
+        document.getElementById('game-confirm-modal').classList.remove('active');
+    }
+
+    async function confirmPoint() {
+        document.getElementById('set-confirm-modal').classList.remove('active');
+        document.getElementById('game-confirm-modal').classList.remove('active');
+        if (pendingPoint) {
+            await sendPoint(pendingPoint);
+            pendingPoint = null;
+        }
+    }
+
+    async function sendPoint(team) {
+        const url = `/api/games/${GAME_ID}/point/${team}`;
+        const res = await fetch(url, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({version: score.version})
+        });
+        const data = await res.json();
+        if (res.status === 409) {
+            showConflict(data);
+        } else {
+            score = data;
+            renderScore();
+            if (data.currentSet > 5 || score.sets.filter(x=>x.home>x.away).length===3 || score.sets.filter(x=>x.away>x.home).length===3) {
+                setTimeout(() => { window.location.href = '/score'; }, 1500);
+            }
+        }
+    }
+
+    function showConflict(serverScore) {
+        score = serverScore;
+        renderScore();
+        const banner = document.getElementById('conflict-banner');
+        banner.textContent = `Score conflict! Server score updated: ${serverScore.currentSetHome}-${serverScore.currentSetAway}`;
+        banner.style.display = 'block';
+        setTimeout(() => { banner.style.display = 'none'; }, 4000);
+    }
+
+    function renderScore() {
+        if (!score) return;
+
+        const leftIsHome = score.homeLeftSide;
+
+        // Labels
+        document.getElementById('left-label').textContent = leftIsHome ? HOME_CODE : AWAY_NAME;
+        document.getElementById('right-label').textContent = leftIsHome ? AWAY_NAME : HOME_CODE;
+
+        // Colors
+        const leftColor = leftIsHome ? HOME_COLOR : score.awayColor;
+        const rightColor = leftIsHome ? score.awayColor : HOME_COLOR;
+        document.getElementById('left-half').style.background =
+            `radial-gradient(ellipse at center, ${leftColor}22 0%, transparent 70%)`;
+        document.getElementById('left-label').style.color = leftColor;
+        document.getElementById('left-points').style.color = leftColor;
+        document.getElementById('right-half').style.background =
+            `radial-gradient(ellipse at center, ${rightColor}22 0%, transparent 70%)`;
+        document.getElementById('right-label').style.color = rightColor;
+        document.getElementById('right-points').style.color = rightColor;
+
+        // Scores
+        const leftPoints = leftIsHome ? score.currentSetHome : score.currentSetAway;
+        const rightPoints = leftIsHome ? score.currentSetAway : score.currentSetHome;
+        document.getElementById('left-points').textContent = leftPoints;
+        document.getElementById('right-points').textContent = rightPoints;
+
+        // Set scores
+        const homeSets = score.sets.filter(s => s.home > s.away).length;
+        const awaySets = score.sets.filter(s => s.away > s.home).length;
+        const leftSets = leftIsHome ? homeSets : awaySets;
+        const rightSets = leftIsHome ? awaySets : homeSets;
+        document.getElementById('left-sets').textContent = `Set ${score.currentSet}  ·  ${leftSets}-${rightSets}`;
+        document.getElementById('right-sets').textContent = `Set ${score.currentSet}  ·  ${rightSets}-${leftSets}`;
+
+        document.getElementById('topbar-status').textContent =
+            score.sets.map(s => s.home + '-' + s.away).join('  ');
+    }
+
+    async function startGame() {
+        const lateSetsInput = document.getElementById('late-sets').value.trim();
+        let sets = [];
+        if (lateSetsInput) {
+            sets = lateSetsInput.split(',').map(s => {
+                const [h, a] = s.trim().split('-').map(Number);
+                return {home: h, away: a};
+            });
+        }
+
+        const res = await fetch(`/api/games/${GAME_ID}/start`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                homeLeftSide: homeLeftSide,
+                awayColor: selectedAwayColor,
+                sets: sets
+            })
+        });
+        score = await res.json();
+        document.getElementById('start-modal').classList.remove('active');
+        renderScore();
+    }
+
+    // Init
+    async function init() {
+        if (GAME_STATUS === 'SCHEDULED') {
+            document.getElementById('start-modal').classList.add('active');
+            // Show placeholder
+            document.getElementById('left-label').textContent = HOME_CODE;
+            document.getElementById('right-label').textContent = AWAY_NAME;
+            document.getElementById('left-label').style.color = HOME_COLOR;
+            document.getElementById('left-points').style.color = HOME_COLOR;
+        } else {
+            // IN_PROGRESS or FINISHED — load current score
+            const res = await fetch(`/api/games/${GAME_ID}/score`);
+            if (res.ok) {
+                score = await res.json();
+                renderScore();
+            }
+        }
+    }
+
+    init();
+</script>
+</body>
+</html>

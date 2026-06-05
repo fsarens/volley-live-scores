@@ -24,6 +24,9 @@ public class Team implements Serializable {
 	private League league;
 
 
+	/* team color (hex) for the scoring UI */
+	private String color = "#1565c0";
+
 	/* code of the reeks for this team with volleyscore */
 	private String reeks;
 
@@ -101,6 +104,9 @@ public class Team implements Serializable {
 		this.league = league;
 	}
 
+
+	public String getColor() { return color; }
+	public void setColor(String color) { this.color = color; }
 
 	public Sponsor getSponsor2() {
 		return sponsor2;

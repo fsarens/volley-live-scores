@@ -11,6 +11,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import be.volley.live.exception.ScoreConflictException;
 import be.volley.live.model.*;
 import be.volley.live.repository.GameRepository;
 import be.volley.live.repository.ScoreRepository;
@@ -36,7 +37,7 @@ class ScoreServiceTest {
     void addPointHome_incrementsHomeScore() {
         mockScore(score("game1", 10, 8, 1));
 
-        Score result = scoreService.addPointHome("game1");
+        Score result = scoreService.addPointHome("game1", 0);
 
         assertEquals(11, result.getCurrentSetHome());
         assertEquals(8, result.getCurrentSetAway());
@@ -46,7 +47,7 @@ class ScoreServiceTest {
     void addPointAway_incrementsAwayScore() {
         mockScore(score("game1", 8, 10, 1));
 
-        Score result = scoreService.addPointAway("game1");
+        Score result = scoreService.addPointAway("game1", 0);
 
         assertEquals(8, result.getCurrentSetHome());
         assertEquals(11, result.getCurrentSetAway());
@@ -58,7 +59,7 @@ class ScoreServiceTest {
     void addPoint_at25_12_endsSet() {
         mockScore(score("game1", 24, 12, 1));
 
-        Score result = scoreService.addPointHome("game1");
+        Score result = scoreService.addPointHome("game1", 0);
 
         assertEquals(1, result.getSets().size());
         assertEquals(25, result.getSets().get(0).getHome());
@@ -72,7 +73,7 @@ class ScoreServiceTest {
     void addPoint_requiresWinByTwo_doesNotEndSetAt25_24() {
         mockScore(score("game1", 24, 24, 1));
 
-        Score result = scoreService.addPointHome("game1");
+        Score result = scoreService.addPointHome("game1", 0);
 
         assertEquals(0, result.getSets().size());
         assertEquals(25, result.getCurrentSetHome());
@@ -83,7 +84,7 @@ class ScoreServiceTest {
     void addPoint_endsSetAt26_24_whenDeuce() {
         mockScore(score("game1", 25, 24, 1));
 
-        Score result = scoreService.addPointHome("game1");
+        Score result = scoreService.addPointHome("game1", 0);
 
         assertEquals(1, result.getSets().size());
         assertEquals(26, result.getSets().get(0).getHome());
@@ -93,7 +94,7 @@ class ScoreServiceTest {
     void fifthSet_endsAt15_notAt25() {
         mockScore(score("game1", 14, 10, 5));
 
-        Score result = scoreService.addPointHome("game1");
+        Score result = scoreService.addPointHome("game1", 0);
 
         assertEquals(1, result.getSets().size());
         assertEquals(15, result.getSets().get(0).getHome());
@@ -105,7 +106,7 @@ class ScoreServiceTest {
 
         // At 25-10 in set 5, this should NOT end the set (limit is 15)
         // but 25 >= 15 and margin >= 2, so it WILL end — verify that
-        Score result = scoreService.addPointHome("game1");
+        Score result = scoreService.addPointHome("game1", 0);
 
         // Set 5 ends at 15, so 25 is well past — set should be recorded
         assertEquals(1, result.getSets().size());
@@ -118,7 +119,7 @@ class ScoreServiceTest {
         mockScore(score("game1", 24, 10, 1));
         assertTrue(scoreService.getScore("game1").get().isHomeLeftSide());
 
-        Score result = scoreService.addPointHome("game1");
+        Score result = scoreService.addPointHome("game1", 0);
 
         assertFalse(result.isHomeLeftSide());
     }
@@ -138,7 +139,7 @@ class ScoreServiceTest {
         when(gameRepository.findById("game1")).thenReturn(Optional.of(game));
         when(gameRepository.save(any())).thenAnswer(i -> i.getArgument(0));
 
-        scoreService.addPointHome("game1");
+        scoreService.addPointHome("game1", 0);
 
         verify(gameRepository).save(argThat(g -> g.getStatus() == GameStatus.FINISHED));
     }
@@ -156,9 +157,31 @@ class ScoreServiceTest {
         when(gameRepository.findById("game1")).thenReturn(Optional.of(game));
         when(gameRepository.save(any())).thenAnswer(i -> i.getArgument(0));
 
-        scoreService.addPointAway("game1");
+        scoreService.addPointAway("game1", 0);
 
         verify(gameRepository).save(argThat(g -> g.getStatus() == GameStatus.FINISHED));
+    }
+
+    // --- concurrency ---
+
+    @Test
+    void addPointHome_wrongVersion_throwsConflict() {
+        Score s = score("game1", 10, 8, 1);
+        s.setVersion(3); // server is at version 3
+        mockScore(s);
+
+        assertThrows(ScoreConflictException.class,
+                () -> scoreService.addPointHome("game1", 1)); // client thinks it's version 1
+    }
+
+    @Test
+    void addPointHome_correctVersion_succeeds() {
+        Score s = score("game1", 10, 8, 1);
+        s.setVersion(3);
+        mockScore(s);
+
+        Score result = scoreService.addPointHome("game1", 3);
+        assertEquals(11, result.getCurrentSetHome());
     }
 
     // --- undo ---
