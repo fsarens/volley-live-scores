@@ -65,19 +65,54 @@
             position: absolute;
             left: 50%;
             top: 0; bottom: 0;
-            width: 6px;
+            width: 48px;
             transform: translateX(-50%);
-            background: rgba(255,255,255,0.35);
+            background: transparent;
             z-index: 10;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
         }
+        /* Actual net line behind the button */
+        #net::after {
+            content: '';
+            position: absolute;
+            top: 0; bottom: 0;
+            left: 50%;
+            width: 6px;
+            transform: translateX(-50%);
+            background: rgba(255,255,255,0.35);
+            z-index: -1;
+        }
+        /* Undo button on the net */
+        #undo-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: rgba(13,33,55,0.9);
+            border: 2px solid rgba(255,255,255,0.3);
+            color: rgba(255,255,255,0.7);
+            font-size: 1.3em;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.15s, border-color 0.15s;
+            z-index: 11;
+        }
+        #undo-btn:active {
+            background: rgba(198,40,40,0.7);
+            border-color: #c62828;
+            color: #fff;
+        }
         #net::before {
             content: '';
             position: absolute;
-            inset: 0;
+            top: 0; bottom: 0;
+            left: 50%;
+            width: 6px;
+            transform: translateX(-50%);
             background: repeating-linear-gradient(
                 to bottom,
                 transparent 0px, transparent 8px,
@@ -249,7 +284,9 @@
         <div class="team-label" id="left-label"></div>
         <div class="set-points" id="left-points">0</div>
     </div>
-    <div id="net"></div>
+    <div id="net">
+        <button id="undo-btn" onclick="undoPoint()" title="Undo last point">↩</button>
+    </div>
     <div class="half" id="right-half" onclick="addPoint('right')">
         <div class="team-label" id="right-label"></div>
         <div class="set-points" id="right-points">0</div>
@@ -359,6 +396,15 @@
         };
         picker.appendChild(s);
     });
+
+    async function undoPoint() {
+        if (!score) return;
+        const res = await fetch(`/api/games/${GAME_ID}/undo`, { method: 'POST' });
+        if (res.ok) {
+            score = await res.json();
+            renderScore();
+        }
+    }
 
     function setConfirmEl(id, name, color) {
         const el = document.getElementById(id);
