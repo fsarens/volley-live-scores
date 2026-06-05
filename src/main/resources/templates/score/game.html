@@ -400,6 +400,7 @@
     let selectedAwayColor = '#c62828';
     let homeLeftSide = true;
     let holdTimer = null;
+    let holdSide  = null;
 
     // Init color picker
     const picker = document.getElementById('away-color-picker');
@@ -421,10 +422,12 @@
         event.preventDefault();
         if (!score) return;
         if (holdTimer) return; // already holding
+        holdSide = side;
         const fill = document.getElementById(side + '-fill');
         fill.style.height = '100%'; // triggers CSS transition upward
         holdTimer = setTimeout(() => {
             holdTimer = null;
+            holdSide = null;
             // Snap fill back instantly
             fill.style.transition = 'none';
             fill.style.height = '0%';
@@ -436,9 +439,10 @@
     }
 
     function cancelHold(side) {
-        if (!holdTimer) return;
+        if (!holdTimer || holdSide !== side) return; // only cancel if this side is actually being held
         clearTimeout(holdTimer);
         holdTimer = null;
+        holdSide = null;
         const fill = document.getElementById(side + '-fill');
         fill.style.height = '0%'; // CSS transition reverses back down
     }
