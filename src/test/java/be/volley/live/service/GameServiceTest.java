@@ -32,7 +32,12 @@ class GameServiceTest {
     @Test
     void createGame_setsStatusToScheduled() {
         Game game = newGame();
+        Team homeTeam = new Team();
+        homeTeam.setCode("DA");
+        game.setHomeTeam(homeTeam);
         game.setStatus(null);
+        when(gameRepository.existsByDateAndCourtAndTimeBlock(any(), any(), any())).thenReturn(false);
+        when(gameRepository.existsByDateAndHomeTeamCodeAndTimeBlock(any(), any(), any())).thenReturn(false);
         when(gameRepository.save(any())).thenAnswer(i -> i.getArgument(0));
 
         Game result = gameService.createGame(game);
@@ -76,6 +81,51 @@ class GameServiceTest {
     void deleteGame_callsRepository() {
         gameService.deleteGame("abc");
         verify(gameRepository).deleteById("abc");
+    }
+
+    @Test
+    void createGame_duplicateCourtAndTimeBlock_throwsException() {
+        Game game = newGame();
+        when(gameRepository.existsByDateAndCourtAndTimeBlock(game.getDate(), game.getCourt(), game.getTimeBlock()))
+                .thenReturn(true);
+
+        assertThrows(IllegalArgumentException.class, () -> gameService.createGame(game));
+    }
+
+    @Test
+    void createGame_duplicateHomeTeamAndTimeBlock_throwsException() {
+        Game game = newGame();
+        Team homeTeam = new Team();
+        homeTeam.setCode("DA");
+        homeTeam.setName("Dames A");
+        game.setHomeTeam(homeTeam);
+
+        when(gameRepository.existsByDateAndCourtAndTimeBlock(game.getDate(), game.getCourt(), game.getTimeBlock()))
+                .thenReturn(false);
+        when(gameRepository.existsByDateAndHomeTeamCodeAndTimeBlock(game.getDate(), homeTeam.getCode(), game.getTimeBlock()))
+                .thenReturn(true);
+
+        assertThrows(IllegalArgumentException.class, () -> gameService.createGame(game));
+    }
+
+    @Test
+    void createGame_noDuplicates_saves() {
+        Game game = newGame();
+        Team homeTeam = new Team();
+        homeTeam.setCode("DA");
+        homeTeam.setName("Dames A");
+        game.setHomeTeam(homeTeam);
+
+        when(gameRepository.existsByDateAndCourtAndTimeBlock(game.getDate(), game.getCourt(), game.getTimeBlock()))
+                .thenReturn(false);
+        when(gameRepository.existsByDateAndHomeTeamCodeAndTimeBlock(game.getDate(), homeTeam.getCode(), game.getTimeBlock()))
+                .thenReturn(false);
+        when(gameRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+
+        Game result = gameService.createGame(game);
+
+        assertEquals(GameStatus.SCHEDULED, result.getStatus());
+        verify(gameRepository).save(game);
     }
 
     private Game newGame() {

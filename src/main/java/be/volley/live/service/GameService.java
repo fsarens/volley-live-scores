@@ -20,6 +20,14 @@ public class GameService {
     }
 
     public Game createGame(Game game) {
+        if (gameRepository.existsByDateAndCourtAndTimeBlock(game.getDate(), game.getCourt(), game.getTimeBlock())) {
+            throw new IllegalArgumentException(
+                "Court " + game.getCourt() + " is already occupied at " + game.getTimeBlock().name().replace("BLOCK_", "") + ":00");
+        }
+        if (gameRepository.existsByDateAndHomeTeamCodeAndTimeBlock(game.getDate(), game.getHomeTeam().getCode(), game.getTimeBlock())) {
+            throw new IllegalArgumentException(
+                game.getHomeTeam().getName() + " already has a game at " + game.getTimeBlock().name().replace("BLOCK_", "") + ":00");
+        }
         game.setStatus(GameStatus.SCHEDULED);
         return gameRepository.save(game);
     }

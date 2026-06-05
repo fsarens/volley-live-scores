@@ -41,6 +41,11 @@
     <input type="date" id="datePicker" th:value="${date}" onchange="window.location='/admin?date='+this.value">
 </div>
 
+<!-- Error message -->
+<div th:if="${error}" style="background:#ffe0e0; border:1px solid #cc0000; border-radius:6px; padding:10px 16px; margin-bottom:16px; color:#cc0000;">
+    ⚠️ <span th:text="${error}"></span>
+</div>
+
 <!-- Game list -->
 <table th:if="${!games.isEmpty()}">
     <thead>

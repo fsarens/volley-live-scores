@@ -47,7 +47,8 @@ public class AdminController {
             @RequestParam String homeTeamCode,
             @RequestParam String awayTeam,
             @RequestParam TimeBlock timeBlock,
-            @RequestParam Court court) {
+            @RequestParam Court court,
+            Model model) {
 
         Team homeTeam = teamService.getTeamByCode(homeTeamCode)
                 .orElseThrow(() -> new IllegalArgumentException("Unknown team: " + homeTeamCode));
@@ -59,7 +60,18 @@ public class AdminController {
         game.setTimeBlock(timeBlock);
         game.setCourt(court);
 
-        gameService.createGame(game);
+        try {
+            gameService.createGame(game);
+        } catch (IllegalArgumentException e) {
+            model.addAttribute("date", date);
+            model.addAttribute("error", e.getMessage());
+            model.addAttribute("games", gameService.getGamesByDate(date));
+            model.addAttribute("teams", teamService.getAllTeams());
+            model.addAttribute("timeBlocks", TimeBlock.values());
+            model.addAttribute("courts", Court.values());
+            model.addAttribute("newGame", game);
+            return "admin/index";
+        }
 
         return "redirect:/admin?date=" + date;
     }
