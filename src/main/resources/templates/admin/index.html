@@ -113,7 +113,9 @@
             </label>
             <label>
                 Away team color
-                <select name="awayColor" required>
+                <select name="awayColor" required
+                        style="background:#c62828; color:#fff"
+                        onchange="this.style.background=this.value; this.style.color=this.value==='#ffffff'?'#000':'#fff'">
                     <option th:each="c : ${colors}"
                             th:value="${c[0]}"
                             th:text="${c[1]}"
