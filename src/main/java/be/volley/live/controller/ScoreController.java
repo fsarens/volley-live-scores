@@ -46,7 +46,6 @@ public class ScoreController {
     public Score startGame(@PathVariable String id, @RequestBody StartGameRequest request) {
         Score initial = new Score(id);
         initial.setHomeLeftSide(request.homeLeftSide());
-        initial.setAwayColor(request.awayColor());
         if (request.sets() != null) {
             initial.setSets(request.sets());
             initial.setCurrentSet(request.sets().size() + 1);
@@ -84,7 +83,7 @@ public class ScoreController {
 
     // --- Request records ---
 
-    record StartGameRequest(boolean homeLeftSide, String awayColor, List<SetScore> sets) {}
+    record StartGameRequest(boolean homeLeftSide, List<SetScore> sets) {}
 
     record PointRequest(int version) {}
 

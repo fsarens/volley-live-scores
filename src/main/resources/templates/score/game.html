@@ -330,10 +330,6 @@
             </div>
         </div>
         <div class="form-group">
-            <label>Away team color</label>
-            <div class="color-picker" id="away-color-picker"></div>
-        </div>
-        <div class="form-group">
             <label>Late join? Enter completed set scores (e.g. 25-18, 18-25)</label>
             <input type="text" id="late-sets" placeholder="Leave empty if starting from scratch">
         </div>
@@ -379,44 +375,17 @@
     const GAME_ID = /*[[${gameId}]]*/ '';
     const HOME_NAME = /*[[${game.homeTeam.name}]]*/ '';
     const HOME_CODE = /*[[${game.homeTeam.code}]]*/ '';
-    const HOME_COLOR = /*[[${game.homeTeam.color ?: '#1565c0'}]]*/ '#1565c0';
-    const AWAY_NAME = /*[[${game.awayTeam}]]*/ '';
+    const HOME_COLOR  = /*[[${game.homeTeam.color ?: '#1565c0'}]]*/ '#1565c0';
+    const AWAY_COLOR  = /*[[${game.awayColor ?: '#c62828'}]]*/ '#c62828';
+    const AWAY_NAME   = /*[[${game.awayTeam}]]*/ '';
     const GAME_STATUS = /*[[${game.status.name()}]]*/ 'SCHEDULED';
-
-    const COLORS = [
-        {hex: '#333333', name: 'Charcoal'},
-        {hex: '#ffffff', name: 'White'},
-        {hex: '#1565c0', name: 'Blue'},
-        {hex: '#c62828', name: 'Red'},
-        {hex: '#2e7d32', name: 'Green'},
-        {hex: '#e65100', name: 'Orange'},
-        {hex: '#f9a825', name: 'Yellow'},
-        {hex: '#6a1b9a', name: 'Purple'}
-    ];
 
     // State
     let score = null;
     let pendingPoint = null; // 'home' or 'away'
-    let selectedAwayColor = '#c62828';
     let homeLeftSide = true;
     let holdTimer = null;
     let holdSide  = null;
-
-    // Init color picker
-    const picker = document.getElementById('away-color-picker');
-    COLORS.forEach(c => {
-        const s = document.createElement('div');
-        s.className = 'color-swatch' + (c.hex === '#ffffff' ? ' white-swatch' : '');
-        s.style.background = c.hex;
-        s.title = c.name;
-        if (c.hex === selectedAwayColor) s.classList.add('selected');
-        s.onclick = () => {
-            document.querySelectorAll('.color-swatch').forEach(x => x.classList.remove('selected'));
-            s.classList.add('selected');
-            selectedAwayColor = c.hex;
-        };
-        picker.appendChild(s);
-    });
 
     function startHold(side, event) {
         event.preventDefault();
@@ -493,8 +462,8 @@
         const leftIsHome = score.homeLeftSide;
         const leftName  = leftIsHome ? HOME_CODE : AWAY_NAME;
         const rightName = leftIsHome ? AWAY_NAME  : HOME_CODE;
-        const leftColor  = leftIsHome ? HOME_COLOR : score.awayColor;
-        const rightColor = leftIsHome ? score.awayColor : HOME_COLOR;
+        const leftColor  = leftIsHome ? HOME_COLOR : AWAY_COLOR;
+        const rightColor = leftIsHome ? AWAY_COLOR : HOME_COLOR;
 
         if (wouldEndMatch(score, team)) {
             pendingPoint = team;
@@ -575,8 +544,8 @@
         document.getElementById('right-label').textContent = leftIsHome ? AWAY_NAME : HOME_CODE;
 
         // Colors
-        const leftColor = leftIsHome ? HOME_COLOR : score.awayColor;
-        const rightColor = leftIsHome ? score.awayColor : HOME_COLOR;
+        const leftColor = leftIsHome ? HOME_COLOR : AWAY_COLOR;
+        const rightColor = leftIsHome ? AWAY_COLOR : HOME_COLOR;
         document.getElementById('left-half').style.background =
             `radial-gradient(ellipse at center, ${leftColor}22 0%, transparent 70%)`;
         document.getElementById('left-label').style.color = leftColor;
@@ -613,7 +582,7 @@
 
         // Topbar right: each completed set score, home points in home color, away in away color
         const homeColor = HOME_COLOR;
-        const awayColor = score.awayColor;
+        const awayColor = AWAY_COLOR;
         const topbarRight = document.getElementById('topbar-right');
         topbarRight.innerHTML = score.sets.map(s => {
             const leftPts  = leftIsHome ? s.home : s.away;
@@ -639,7 +608,6 @@
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({
                 homeLeftSide: homeLeftSide,
-                awayColor: selectedAwayColor,
                 sets: sets
             })
         });
@@ -658,7 +626,7 @@
             document.getElementById('left-label').style.color = HOME_COLOR;
             document.getElementById('left-points').style.color = HOME_COLOR;
             document.getElementById('left-fill').style.background  = HOME_COLOR + '66';
-            document.getElementById('right-fill').style.background = selectedAwayColor + '66';
+            document.getElementById('right-fill').style.background = AWAY_COLOR + '66';
         } else {
             // IN_PROGRESS or FINISHED — load current score
             const res = await fetch(`/api/games/${GAME_ID}/score`);

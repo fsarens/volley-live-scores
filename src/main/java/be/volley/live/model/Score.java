@@ -22,7 +22,6 @@ public class Score {
     private int currentSetAway;
     private int currentSet = 1;   // set number 1-5
     private boolean homeLeftSide = true;  // flips each set
-    private String awayColor = "#1565c0"; // set at game start by scorer
     private int version = 0;              // incremented on every point for optimistic concurrency
 
     public Score() {}
@@ -51,9 +50,6 @@ public class Score {
 
     public boolean isHomeLeftSide() { return homeLeftSide; }
     public void setHomeLeftSide(boolean homeLeftSide) { this.homeLeftSide = homeLeftSide; }
-
-    public String getAwayColor() { return awayColor; }
-    public void setAwayColor(String awayColor) { this.awayColor = awayColor; }
 
     public int getVersion() { return version; }
     public void setVersion(int version) { this.version = version; }

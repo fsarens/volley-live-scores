@@ -15,8 +15,9 @@ public class Game {
     private TimeBlock timeBlock;
     private Court court;
 
-    private Team homeTeam;       // embedded — full WAVOC team
-    private String awayTeam;     // visiting club name
+    private Team homeTeam;         // embedded — full WAVOC team
+    private String awayTeam;       // visiting club name
+    private String awayColor = "#c62828"; // preset by admin, used in scoring UI
 
     private GameStatus status = GameStatus.SCHEDULED;
 
@@ -39,6 +40,9 @@ public class Game {
 
     public String getAwayTeam() { return awayTeam; }
     public void setAwayTeam(String awayTeam) { this.awayTeam = awayTeam; }
+
+    public String getAwayColor() { return awayColor; }
+    public void setAwayColor(String awayColor) { this.awayColor = awayColor; }
 
     public GameStatus getStatus() { return status; }
     public void setStatus(GameStatus status) { this.status = status; }

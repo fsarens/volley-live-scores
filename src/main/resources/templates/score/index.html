@@ -49,7 +49,7 @@
         <span th:text="${game.homeTeam.name}"
               th:style="${'color: ' + (game.homeTeam.color ?: '#ffffff')}"></span>
         <span class="team-vs">vs</span>
-        <span th:id="${'away-' + game.id}" th:text="${game.awayTeam}" style="color: #ccc"></span>
+        <span th:text="${game.awayTeam}" th:style="${'color: ' + (game.awayColor ?: '#cccccc')}"></span>
     </div>
     <div class="game-score" th:if="${game.status.name() == 'IN_PROGRESS' or game.status.name() == 'FINISHED'}">
         <span th:id="${'score-' + game.id}">loading...</span>
@@ -70,11 +70,7 @@
                     if (!score) { el.innerHTML = ''; return; }
 
                     const homeColor = game.homeTeam.color || '#ffffff';
-                    const awayColor = score.awayColor  || '#cccccc';
-
-                    // Update away team color now we have it from the score
-                    const awayEl = document.getElementById('away-' + game.id);
-                    if (awayEl) awayEl.style.color = awayColor;
+                    const awayColor = game.awayColor    || '#cccccc';
 
                     // Set score: home sets won - away sets won
                     const homeSets = score.sets.filter(s => s.home > s.away).length;

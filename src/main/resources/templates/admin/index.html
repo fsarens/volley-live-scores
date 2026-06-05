@@ -108,6 +108,16 @@
                 Away team (name)
                 <input type="text" name="awayTeam" placeholder="e.g. VC Leuven" required>
             </label>
+            <label>
+                Away team color
+                <select name="awayColor" required>
+                    <option th:each="c : ${colors}"
+                            th:value="${c[0]}"
+                            th:text="${c[1]}"
+                            th:style="${'background:' + c[0] + '; color:' + (c[0] == '#ffffff' ? '#000' : '#fff')}">
+                    </option>
+                </select>
+            </label>
         </div>
         <button type="submit">Add game</button>
     </form>

@@ -38,6 +38,11 @@ public class AdminController {
         model.addAttribute("timeBlocks", TimeBlock.values());
         model.addAttribute("courts", Court.values());
         model.addAttribute("newGame", new Game());
+        model.addAttribute("colors", new String[][]{
+            {"#333333", "Charcoal"}, {"#ffffff", "White"}, {"#1565c0", "Blue"},
+            {"#c62828", "Red"}, {"#2e7d32", "Green"}, {"#e65100", "Orange"},
+            {"#f9a825", "Yellow"}, {"#6a1b9a", "Purple"}
+        });
         return "admin/index";
     }
 
@@ -46,6 +51,7 @@ public class AdminController {
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
             @RequestParam String homeTeamCode,
             @RequestParam String awayTeam,
+            @RequestParam String awayColor,
             @RequestParam TimeBlock timeBlock,
             @RequestParam Court court,
             Model model) {
@@ -57,6 +63,7 @@ public class AdminController {
         game.setDate(date);
         game.setHomeTeam(homeTeam);
         game.setAwayTeam(awayTeam);
+        game.setAwayColor(awayColor);
         game.setTimeBlock(timeBlock);
         game.setCourt(court);
 
@@ -70,6 +77,11 @@ public class AdminController {
             model.addAttribute("timeBlocks", TimeBlock.values());
             model.addAttribute("courts", Court.values());
             model.addAttribute("newGame", game);
+            model.addAttribute("colors", new String[][]{
+                {"#333333", "Charcoal"}, {"#ffffff", "White"}, {"#1565c0", "Blue"},
+                {"#c62828", "Red"}, {"#2e7d32", "Green"}, {"#e65100", "Orange"},
+                {"#f9a825", "Yellow"}, {"#6a1b9a", "Purple"}
+            });
             return "admin/index";
         }
 
