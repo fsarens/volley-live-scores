@@ -22,4 +22,6 @@ public interface GameRepository extends MongoRepository<Game, String> {
 
     boolean existsByDateAndHomeTeamCodeAndTimeBlock(LocalDate date, String homeTeamCode, TimeBlock timeBlock);
 
+    List<Game> findByHomeTeamCode(String code);
+
 }

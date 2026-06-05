@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import be.volley.live.model.League;
 import be.volley.live.model.Sponsor;
 import be.volley.live.model.Team;
+import be.volley.live.repository.GameRepository;
 import be.volley.live.service.TeamService;
 
 @Controller
@@ -14,6 +15,7 @@ import be.volley.live.service.TeamService;
 public class AdminTeamController {
 
     private final TeamService teamService;
+    private final GameRepository gameRepository;
 
     private static final String[][] COLORS = {
         {"#333333", "Charcoal"}, {"#ffffff", "White"}, {"#1565c0", "Blue"},
@@ -21,8 +23,9 @@ public class AdminTeamController {
         {"#f9a825", "Yellow"}, {"#6a1b9a", "Purple"}
     };
 
-    public AdminTeamController(TeamService teamService) {
+    public AdminTeamController(TeamService teamService, GameRepository gameRepository) {
         this.teamService = teamService;
+        this.gameRepository = gameRepository;
     }
 
     @GetMapping
@@ -122,6 +125,13 @@ public class AdminTeamController {
         team.setSponsor2(s2);
 
         teamService.save(team);
+
+        // Cascade team changes to all games where this team is embedded as home team
+        gameRepository.findByHomeTeamCode(team.getCode()).forEach(game -> {
+            game.setHomeTeam(team);
+            gameRepository.save(game);
+        });
+
         return "redirect:/admin/teams";
     }
 
