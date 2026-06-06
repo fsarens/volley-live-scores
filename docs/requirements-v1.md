@@ -211,4 +211,12 @@ All MVP features shipped:
 - [x] **Cloud hosting** — deployed to Railway with MongoDB Atlas; auto-deploy on PR merge to main
 - [x] **Score simulator / fast input** — `?dev=true` URL flag disables hold requirement; orange DEV MODE badge shown
 - [ ] **Youth game format** — youth games always play all 4 sets regardless of match score; needs a boolean flag (e.g. `alwaysPlayAllSets`) on Game level; scoring logic must skip match-won check for sets 1-3 when flag is set
-- [ ] **VolleyScore game fetching API** — parked until September when the new season starts
+- [ ] **Security / login** — Google OAuth2 via Spring Security; club already uses Google so all members have accounts
+  - **Admin role** — manage teams and games; granted per Google account in MongoDB
+  - **Scorer role** — enter scores for today's games; granted per Google account in MongoDB
+  - **Dashboard** — no login; protected by a secret URL token (e.g. `?token=abc123`) so it can run unattended on a TV/OptiSigns
+  - Needs: Google Cloud OAuth2 client ID + secret; `User` collection in MongoDB storing Google subject ID + role
+
+## 10. Backlog — v3 (after summer, September+)
+
+- [ ] **VolleyScore game fetching API** — fetch official game schedule and results from the VVB/Sporta league API; new season starts in September so API data is not available before then
