@@ -32,7 +32,7 @@ public class ScoreController {
     /** All games for today ordered by time block + court, optionally filtered by timeBlock */
     @GetMapping("/today")
     public List<Game> today(@RequestParam(required = false) String timeBlock) {
-        List<Game> games = gameService.getGamesByDate(LocalDate.now());
+        List<Game> games = gameService.getGamesByDate(GameService.toDateStr(LocalDate.now()));
         if (timeBlock != null && !timeBlock.isBlank()) {
             try {
                 TimeBlock tb = TimeBlock.valueOf(timeBlock);

@@ -1,6 +1,7 @@
 package be.volley.live.service;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 
@@ -12,6 +13,14 @@ import be.volley.live.repository.GameRepository;
 
 @Service
 public class GameService {
+
+    private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.BASIC_ISO_DATE; // yyyyMMdd
+
+    /** Convert a LocalDate to the "YYYYMMDD" string used as the stored date field. */
+    public static String toDateStr(LocalDate date) { return date.format(DATE_FMT); }
+
+    /** Parse a "YYYYMMDD" string back to a LocalDate (for display / navigation). */
+    public static LocalDate fromDateStr(String s) { return LocalDate.parse(s, DATE_FMT); }
 
     private final GameRepository gameRepository;
 
@@ -37,11 +46,11 @@ public class GameService {
         return gameRepository.save(game);
     }
 
-    public List<Game> getGamesByDate(LocalDate date) {
+    public List<Game> getGamesByDate(String date) {
         return gameRepository.findByDateOrderByTimeBlockAscCourtAsc(date);
     }
 
-    public List<Game> getGamesByDateAndStatus(LocalDate date, GameStatus status) {
+    public List<Game> getGamesByDateAndStatus(String date, GameStatus status) {
         return gameRepository.findByDateAndStatus(date, status);
     }
 

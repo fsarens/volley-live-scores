@@ -1,7 +1,5 @@
 package be.volley.live.model;
 
-import java.time.LocalDate;
-
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -11,7 +9,7 @@ public class Game {
     @Id
     private String id;
 
-    private LocalDate date;
+    private String date;   // stored as "YYYYMMDD" — no timezone ambiguity
     private TimeBlock timeBlock;
     private Court court;
 
@@ -26,8 +24,8 @@ public class Game {
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
 
-    public LocalDate getDate() { return date; }
-    public void setDate(LocalDate date) { this.date = date; }
+    public String getDate() { return date; }
+    public void setDate(String date) { this.date = date; }
 
     public TimeBlock getTimeBlock() { return timeBlock; }
     public void setTimeBlock(TimeBlock timeBlock) { this.timeBlock = timeBlock; }
