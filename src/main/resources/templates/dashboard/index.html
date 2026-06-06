@@ -184,12 +184,18 @@
 </div>
 
 <script>
+    // ── DOM refs (grabbed once — never null) ───────────────────────────────────
+    const elGrid    = document.getElementById('grid');
+    const elNoGames = document.getElementById('no-games');
+    const elClock   = document.getElementById('clock');
+    const elBlock   = document.getElementById('timeblock');
+
     // ── Clock ──────────────────────────────────────────────────────────────────
     function updateClock() {
-        const now = new Date();
+        const now  = new Date();
         const date = now.toLocaleDateString('en-BE', { day: 'numeric', month: 'short' });
         const time = now.toLocaleTimeString('en-BE', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-        document.getElementById('clock').textContent = date + '  ·  ' + time;
+        elClock.textContent = date + '  ·  ' + time;
     }
     updateClock();
     setInterval(updateClock, 1000);
@@ -203,11 +209,14 @@
             games = await r.json();
         } catch (e) { return; }
 
+        // Only fetch scores for games that have one (IN_PROGRESS or FINISHED)
         const scores = await Promise.all(
             games.map(g =>
-                fetch('/api/games/' + g.id + '/score')
-                    .then(r => r.ok ? r.json() : null)
-                    .catch(() => null)
+                (g.status === 'IN_PROGRESS' || g.status === 'FINISHED')
+                    ? fetch('/api/games/' + g.id + '/score')
+                        .then(r => r.ok ? r.json() : null)
+                        .catch(() => null)
+                    : Promise.resolve(null)
             )
         );
 
@@ -216,27 +225,22 @@
 
     // ── Render ─────────────────────────────────────────────────────────────────
     function renderGames(games, scores) {
-        const grid    = document.getElementById('grid');
-        const noGames = document.getElementById('no-games');
-        const tbEl    = document.getElementById('timeblock');
-
         if (!games || games.length === 0) {
-            grid.innerHTML = '';
-            grid.style.display = 'none';
-            noGames.style.display = 'flex';
-            tbEl.textContent = '';
+            elGrid.style.display = 'none';
+            elNoGames.style.display = 'flex';
+            elBlock.textContent = '';
             return;
         }
 
-        grid.style.display = 'flex';
-        noGames.style.display = 'none';
-        grid.innerHTML = games.map((game, i) => renderCard(game, scores[i])).join('');
+        elGrid.style.display = 'flex';
+        elNoGames.style.display = 'none';
+        elGrid.innerHTML = games.map((game, i) => renderCard(game, scores[i])).join('');
 
         // Show unique timeblocks in topbar center
         const blocks = [...new Set(games.map(g => g.timeBlock).filter(Boolean))]
             .map(b => b.replace('BLOCK_', '') + ':00')
             .join('  ·  ');
-        tbEl.textContent = blocks;
+        elBlock.textContent = blocks;
     }
 
     function renderCard(game, score) {
