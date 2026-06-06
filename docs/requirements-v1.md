@@ -196,9 +196,17 @@ MongoDB collection: `scores` · One document per game, created when scoring star
 
 ---
 
-## 8. Still To Build — v1 Completion
+## 8. v1 Complete — tagged v1.0.0
 
-- [ ] **Dashboard** — big-screen display showing 5 concurrent games with live scores, optimised for OptiSigns on Raspberry Pi, auto-refresh every 5 seconds
+All MVP features shipped:
+
+- [x] **Dashboard** — big-screen display, court cards with gap/margin, auto-refresh every 5 seconds, filterable by `?timeBlock=BLOCK_XX` for OptiSigns per time slot
+- [x] **Admin** — team CRUD (soft delete, color cascade), game planning with duplicate + same-color validation
+- [x] **Scorer UI** — press-and-hold scoring, undo, set/game end confirmation, conflict handling
+- [x] **Set 5 side handling** — scorer chooses sides after coin toss; teams auto-switch at 8 points mid-set
+- [x] **Shared team data** — MongoDB Atlas, read by both volley-live-scores and newRanking
+
+## 9. Backlog — v2
+
 - [ ] **Cloud hosting** — deployment to Railway or Render
 - [ ] **VolleyScore game fetching API** — parked until September when the new season starts
-- [ ] **Set 5 side handling** — at the start of set 5, scorer chooses which side each team is on (instead of automatic switch); teams switch sides mid-set when either team reaches 8 points
