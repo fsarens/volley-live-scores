@@ -220,3 +220,9 @@ All MVP features shipped:
 ## 10. Backlog — v3 (after summer, September+)
 
 - [ ] **VolleyScore game fetching API** — fetch official game schedule and results from the VVB/Sporta league API; new season starts in September so API data is not available before then
+
+## 11. Testing Backlog
+
+- [ ] **Concurrent scorers** — test behaviour when two scorers are on the same game simultaneously; verify optimistic locking (HTTP 409) is handled correctly and both scorers see the conflict banner and resync
+- [ ] **Mobile — iOS** — test scorer UI on iOS Safari; verify press-and-hold works correctly with touch events, landscape lock, and no unwanted browser gestures interfering
+- [ ] **Mobile — Android** — same as iOS but on Android Chrome; touch event behaviour may differ
