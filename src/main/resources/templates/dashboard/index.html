@@ -62,8 +62,8 @@
         .grid {
             flex: 1;
             display: flex;
-            gap: 0;
-            padding: 0;
+            gap: 12px;
+            padding: 12px;
             overflow: hidden;
         }
 
@@ -75,11 +75,12 @@
             align-items: center;
             justify-content: center;
             padding: 2vh 1.5vw;
-            border-right: 1px solid rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            background: rgba(255,255,255,0.04);
             position: relative;
             gap: 0;
         }
-        .game-card:last-child { border-right: none; }
 
         .card-meta {
             position: absolute;
@@ -106,7 +107,16 @@
         .status-SCHEDULED { background: #1a3a5c; color: #90caf9; }
         .status-FINISHED  { background: #1a3c1a; color: #81c784; }
 
-        .team-home, .team-away {
+        .team-home {
+            font-size: 8vh;
+            font-weight: bold;
+            text-align: center;
+            line-height: 1.15;
+            max-width: 100%;
+            word-break: break-word;
+            overflow-wrap: break-word;
+        }
+        .team-away {
             font-size: 5.5vh;
             font-weight: bold;
             text-align: center;
