@@ -28,7 +28,7 @@ public class ScorerController {
     /** Game list for today */
     @GetMapping
     public String index(Model model) {
-        model.addAttribute("games", gameService.getGamesByDate(LocalDate.now()));
+        model.addAttribute("games", gameService.getGamesByDate(GameService.toDateStr(LocalDate.now())));
         return "score/index";
     }
 

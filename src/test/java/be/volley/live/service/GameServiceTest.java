@@ -3,7 +3,6 @@ package be.volley.live.service;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -47,7 +46,7 @@ class GameServiceTest {
 
     @Test
     void getGamesByDate_returnsGamesForDate() {
-        LocalDate date = LocalDate.of(2025, 10, 4);
+        String date = "20251004";
         List<Game> games = List.of(newGame(), newGame());
         when(gameRepository.findByDateOrderByTimeBlockAscCourtAsc(date)).thenReturn(games);
 
@@ -148,7 +147,7 @@ class GameServiceTest {
 
     private Game newGame() {
         Game g = new Game();
-        g.setDate(LocalDate.of(2025, 10, 4));
+        g.setDate("20251004");
         g.setTimeBlock(TimeBlock.BLOCK_10);
         g.setCourt(Court.A1);
         g.setAwayTeam("VC Leuven");
