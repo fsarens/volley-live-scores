@@ -1,0 +1,10 @@
+{
+    "configurations": [
+        {
+            "type": "spring-boot",
+            "name": "Volley Live Scores (local)",
+            "mainClass": "be.volley.live.VolleyLiveScoresApplication",
+            "activeProfiles": ["local"]
+        }
+    ]
+}
