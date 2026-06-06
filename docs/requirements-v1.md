@@ -211,3 +211,4 @@ All MVP features shipped:
 - [ ] **Cloud hosting** — deployment to Railway or Render
 - [ ] **VolleyScore game fetching API** — parked until September when the new season starts
 - [ ] **Youth game format** — youth games always play all 4 sets regardless of match score; needs a boolean flag (e.g. `alwaysPlayAllSets`) on Game level; scoring logic must skip match-won check for sets 1-3 when flag is set
+- [ ] **Score simulator / fast input** — for testing and demo purposes, a mode or separate screen where points can be added with a single tap (no hold required); options to consider: a `?dev=true` URL flag that disables hold, a desktop-friendly admin score editor that accepts set scores directly, or a simulation script that plays through a full game automatically
