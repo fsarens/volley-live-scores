@@ -103,9 +103,8 @@
             letter-spacing: 0.06em;
             white-space: nowrap;
         }
-        .status-SCHEDULED   { background: #1a3a5c; color: #90caf9; }
-        .status-IN_PROGRESS { background: #5c3000; color: #ffb74d; }
-        .status-FINISHED    { background: #1a3c1a; color: #81c784; }
+        .status-SCHEDULED { background: #1a3a5c; color: #90caf9; }
+        .status-FINISHED  { background: #1a3c1a; color: #81c784; }
 
         .team-home, .team-away {
             font-size: 3.8vh;
@@ -156,6 +155,17 @@
             font-size: 5vh;
             color: rgba(255,255,255,0.2);
         }
+
+        .set-history {
+            display: flex;
+            gap: 1.2vw;
+            font-size: 2.8vh;
+            font-weight: bold;
+            margin-top: 1.2vh;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .set-result { white-space: nowrap; }
 
         .no-games {
             flex: 1;
@@ -246,9 +256,16 @@
     function renderCard(game, score) {
         const homeColor = (game.homeTeam && game.homeTeam.color) || '#ffffff';
         const status    = game.status || 'SCHEDULED';
+        const homeCode  = esc(game.homeTeam ? game.homeTeam.code : '');
+
+        // Badge: only for SCHEDULED and FINISHED
+        const badgeHtml = (status === 'SCHEDULED' || status === 'FINISHED')
+            ? `<span class="status-badge status-${status}">${status}</span>`
+            : '';
 
         let setsHtml    = '';
         let currentHtml = '';
+        let historyHtml = '';
 
         if (score && (status === 'IN_PROGRESS' || status === 'FINISHED')) {
             const homeSets = score.sets ? score.sets.filter(s => s.home > s.away).length : 0;
@@ -269,20 +286,29 @@
                         <span style="color:#aaaaaa">${score.currentSetAway}</span>
                     </div>`;
             }
+
+            if (status === 'FINISHED' && score.sets && score.sets.length > 0) {
+                const setSpans = score.sets.map(s => {
+                    const winColor = s.home > s.away ? homeColor : '#aaaaaa';
+                    return `<span class="set-result" style="color:${winColor}">${s.home}-${s.away}</span>`;
+                }).join('<span style="color:rgba(255,255,255,0.15)"> · </span>');
+                historyHtml = `<div class="set-history">${setSpans}</div>`;
+            }
         }
 
         return `
         <div class="game-card">
             <div class="card-meta">Court ${game.court}</div>
-            <span class="status-badge status-${status}">${status.replace('_', ' ')}</span>
+            ${badgeHtml}
 
-            <span class="team-home" style="color:${homeColor}">${esc(game.homeTeam ? game.homeTeam.name : '')}</span>
+            <span class="team-home" style="color:${homeColor}">${homeCode}</span>
             <span class="vs-sep">vs</span>
             <span class="team-away" style="color:#aaaaaa">${esc(game.awayTeam || '')}</span>
 
             ${setsHtml ? '<div class="score-divider"></div>' : ''}
             ${setsHtml}
             ${currentHtml}
+            ${historyHtml}
         </div>`;
     }
 
