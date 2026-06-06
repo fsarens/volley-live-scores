@@ -156,7 +156,7 @@ MongoDB collection: `teams` · Shared between volley-live-scores and newRanking
 | Field | Type | Notes |
 |-------|------|-------|
 | id | String | MongoDB ObjectId |
-| date | LocalDate | |
+| date | String | Stored as `"YYYYMMDD"` — no timezone ambiguity |
 | timeBlock | Enum | BLOCK_10 … BLOCK_20 |
 | court | Enum | A1, A2, A3, B1, B2 |
 | homeTeam | Team | Embedded full Team object |
@@ -208,7 +208,7 @@ All MVP features shipped:
 
 ## 9. Backlog — v2
 
-- [ ] **Cloud hosting** — deployment to Railway or Render
-- [ ] **VolleyScore game fetching API** — parked until September when the new season starts
+- [x] **Cloud hosting** — deployed to Railway with MongoDB Atlas; auto-deploy on PR merge to main
+- [x] **Score simulator / fast input** — `?dev=true` URL flag disables hold requirement; orange DEV MODE badge shown
 - [ ] **Youth game format** — youth games always play all 4 sets regardless of match score; needs a boolean flag (e.g. `alwaysPlayAllSets`) on Game level; scoring logic must skip match-won check for sets 1-3 when flag is set
-- [ ] **Score simulator / fast input** — for testing and demo purposes, a mode or separate screen where points can be added with a single tap (no hold required); options to consider: a `?dev=true` URL flag that disables hold, a desktop-friendly admin score editor that accepts set scores directly, or a simulation script that plays through a full game automatically
+- [ ] **VolleyScore game fetching API** — parked until September when the new season starts
