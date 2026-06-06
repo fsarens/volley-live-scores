@@ -109,12 +109,30 @@ class GameServiceTest {
     }
 
     @Test
+    void createGame_sameColor_throwsException() {
+        Game game = newGame();
+        Team homeTeam = new Team();
+        homeTeam.setCode("DA");
+        homeTeam.setName("Dames A");
+        homeTeam.setColor("#1565c0");
+        game.setHomeTeam(homeTeam);
+        game.setAwayColor("#1565c0");
+
+        when(gameRepository.existsByDateAndCourtAndTimeBlock(any(), any(), any())).thenReturn(false);
+        when(gameRepository.existsByDateAndHomeTeamCodeAndTimeBlock(any(), any(), any())).thenReturn(false);
+
+        assertThrows(IllegalArgumentException.class, () -> gameService.createGame(game));
+    }
+
+    @Test
     void createGame_noDuplicates_saves() {
         Game game = newGame();
         Team homeTeam = new Team();
         homeTeam.setCode("DA");
         homeTeam.setName("Dames A");
+        homeTeam.setColor("#1565c0");
         game.setHomeTeam(homeTeam);
+        game.setAwayColor("#c62828");
 
         when(gameRepository.existsByDateAndCourtAndTimeBlock(game.getDate(), game.getCourt(), game.getTimeBlock()))
                 .thenReturn(false);

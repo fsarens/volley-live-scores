@@ -28,6 +28,11 @@ public class GameService {
             throw new IllegalArgumentException(
                 game.getHomeTeam().getName() + " already has a game at " + game.getTimeBlock().name().replace("BLOCK_", "") + ":00");
         }
+        if (game.getHomeTeam().getColor() != null
+                && game.getHomeTeam().getColor().equalsIgnoreCase(game.getAwayColor())) {
+            throw new IllegalArgumentException(
+                "Home and away team cannot have the same color");
+        }
         game.setStatus(GameStatus.SCHEDULED);
         return gameRepository.save(game);
     }
