@@ -34,7 +34,9 @@ public class ScorerController {
 
     /** Score input screen for a specific game */
     @GetMapping("/{id}")
-    public String game(@PathVariable String id, Model model) {
+    public String game(@PathVariable String id,
+                       @RequestParam(defaultValue = "false") boolean dev,
+                       Model model) {
         Game game = gameService.getGame(id)
                 .orElseThrow(() -> new IllegalArgumentException("Game not found: " + id));
 
@@ -58,6 +60,7 @@ public class ScorerController {
             scoreService.getScore(id).ifPresent(score -> model.addAttribute("score", score));
         }
 
+        model.addAttribute("devMode", dev);
         return "score/game";
     }
 

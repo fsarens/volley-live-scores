@@ -283,6 +283,8 @@
         <span th:text="${game.court}"></span>
         &nbsp;·&nbsp;
         <span id="topbar-set">Set 1</span>
+        <span th:if="${devMode}"
+              style="background:#e65100;color:#fff;font-size:1em;font-weight:bold;padding:4px 16px;border-radius:4px;margin-left:12px;letter-spacing:0.1em">⚡ DEV MODE</span>
     </div>
     <div id="topbar-right"></div>
 </div>
@@ -387,7 +389,8 @@
 </div>
 
 <script th:inline="javascript">
-    const GAME_ID = /*[[${gameId}]]*/ '';
+    const GAME_ID  = /*[[${gameId}]]*/ '';
+    const DEV_MODE = /*[[${devMode}]]*/ false;
     const HOME_NAME = /*[[${game.homeTeam.name}]]*/ '';
     const HOME_CODE = /*[[${game.homeTeam.code}]]*/ '';
     const HOME_COLOR  = /*[[${game.homeTeam.color ?: '#1565c0'}]]*/ '#1565c0';
@@ -405,6 +408,7 @@
     function startHold(side, event) {
         event.preventDefault();
         if (!score) return;
+        if (DEV_MODE) { addPoint(side); return; } // dev mode: instant tap, no hold needed
         if (holdTimer) return; // already holding
         holdSide = side;
         const fill = document.getElementById(side + '-fill');
