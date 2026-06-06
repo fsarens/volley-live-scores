@@ -32,6 +32,10 @@ build/
 ### VS Code ###
 .vscode/
 
+### Fleet / Claude ###
+.fleet/launch.json
+.claude/
+
 ### Local config (contains credentials) ###
 src/main/resources/application-local.properties
 
