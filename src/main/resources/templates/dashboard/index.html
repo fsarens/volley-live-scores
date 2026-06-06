@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WAVOC Live Scores</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        html, body {
+            height: 100%;
+            background: #0d2137;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            overflow: hidden;
+        }
+
+        /* ── Topbar ── */
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2vw;
+            height: 9vh;
+            background: rgba(0,0,0,0.35);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            flex-shrink: 0;
+        }
+        .topbar-left {
+            display: flex;
+            align-items: center;
+            gap: 0.8vw;
+        }
+        .topbar-logo { font-size: 3vh; }
+        .topbar-title {
+            font-size: 2.4vh;
+            font-weight: bold;
+            color: #90caf9;
+            letter-spacing: 0.05em;
+        }
+        .topbar-right {
+            font-size: 2.2vh;
+            color: rgba(255,255,255,0.55);
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* ── Main area ── */
+        .main {
+            height: 91vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ── Game grid ── */
+        .grid {
+            flex: 1;
+            display: flex;
+            gap: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        /* ── Game card ── */
+        .game-card {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2vh 1.5vw;
+            border-right: 1px solid rgba(255,255,255,0.08);
+            position: relative;
+            gap: 0;
+        }
+        .game-card:last-child { border-right: none; }
+
+        .card-meta {
+            position: absolute;
+            top: 2vh;
+            left: 0; right: 0;
+            text-align: center;
+            font-size: 1.6vh;
+            color: #90caf9;
+            letter-spacing: 0.04em;
+        }
+
+        .status-badge {
+            position: absolute;
+            top: 5.5vh;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 0.3vh 1vw;
+            border-radius: 3px;
+            font-size: 1.3vh;
+            font-weight: bold;
+            letter-spacing: 0.06em;
+            white-space: nowrap;
+        }
+        .status-SCHEDULED  { background: #1a3a5c; color: #90caf9; }
+        .status-IN_PROGRESS { background: #5c3000; color: #ffb74d; }
+        .status-FINISHED    { background: #1a3c1a; color: #81c784; }
+
+        .team-home, .team-away {
+            font-size: 3.8vh;
+            font-weight: bold;
+            text-align: center;
+            line-height: 1.1;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .vs-sep {
+            font-size: 1.8vh;
+            color: rgba(255,255,255,0.3);
+            margin: 1.2vh 0;
+        }
+
+        /* divider line between teams and score */
+        .score-divider {
+            width: 40%;
+            height: 1px;
+            background: rgba(255,255,255,0.12);
+            margin: 2vh 0 1.5vh;
+        }
+
+        .sets-score {
+            display: flex;
+            align-items: baseline;
+            gap: 1.2vw;
+            font-size: 9vh;
+            font-weight: bold;
+            line-height: 1;
+        }
+        .sets-sep {
+            font-size: 5vh;
+            color: rgba(255,255,255,0.25);
+        }
+
+        .current-score {
+            display: flex;
+            align-items: baseline;
+            gap: 0.8vw;
+            font-size: 4vh;
+            font-weight: bold;
+            margin-top: 1.5vh;
+            color: rgba(255,255,255,0.6);
+        }
+        .current-sep {
+            font-size: 2.5vh;
+            color: rgba(255,255,255,0.2);
+        }
+
+        .no-games {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3vh;
+            color: rgba(255,255,255,0.25);
+        }
+    </style>
+</head>
+<body>
+
+<div class="topbar">
+    <div class="topbar-left">
+        <span class="topbar-logo">🏐</span>
+        <span class="topbar-title">WAVOC Live Scores</span>
+    </div>
+    <div class="topbar-right" id="clock"></div>
+</div>
+
+<div class="main">
+    <div class="grid" id="grid">
+        <div class="no-games" id="no-games" style="display:none">No games today</div>
+    </div>
+</div>
+
+<script>
+    // ── Clock ──────────────────────────────────────────────────────────────────
+    function updateClock() {
+        const now = new Date();
+        const date = now.toLocaleDateString('en-BE', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' });
+        const time = now.toLocaleTimeString('en-BE', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        document.getElementById('clock').textContent = date + '  ·  ' + time;
+    }
+    updateClock();
+    setInterval(updateClock, 1000);
+
+    // ── Data refresh ───────────────────────────────────────────────────────────
+    async function refresh() {
+        let games;
+        try {
+            const r = await fetch('/api/games/today');
+            if (!r.ok) return;
+            games = await r.json();
+        } catch (e) { return; }
+
+        const scores = await Promise.all(
+            games.map(g =>
+                fetch('/api/games/' + g.id + '/score')
+                    .then(r => r.ok ? r.json() : null)
+                    .catch(() => null)
+            )
+        );
+
+        renderGames(games, scores);
+    }
+
+    // ── Render ─────────────────────────────────────────────────────────────────
+    function renderGames(games, scores) {
+        const grid = document.getElementById('grid');
+        const noGames = document.getElementById('no-games');
+
+        if (!games || games.length === 0) {
+            grid.innerHTML = '';
+            grid.appendChild(noGames);
+            noGames.style.display = 'flex';
+            return;
+        }
+        noGames.style.display = 'none';
+
+        grid.innerHTML = games.map((game, i) => renderCard(game, scores[i])).join('');
+    }
+
+    function renderCard(game, score) {
+        const homeColor = (game.homeTeam && game.homeTeam.color) || '#ffffff';
+        const awayColor = game.awayColor || '#cccccc';
+        const status    = game.status || 'SCHEDULED';
+        const timeLabel = game.timeBlock ? game.timeBlock.replace('BLOCK_', '') + ':00' : '';
+
+        // Sets won
+        let setsHtml = '';
+        let currentHtml = '';
+
+        if (score && (status === 'IN_PROGRESS' || status === 'FINISHED')) {
+            const homeSets = score.sets ? score.sets.filter(s => s.home > s.away).length : 0;
+            const awaySets = score.sets ? score.sets.filter(s => s.away > s.home).length : 0;
+
+            setsHtml = `
+                <div class="sets-score">
+                    <span style="color:${homeColor}">${homeSets}</span>
+                    <span class="sets-sep">-</span>
+                    <span style="color:${awayColor}">${awaySets}</span>
+                </div>`;
+
+            if (status === 'IN_PROGRESS') {
+                currentHtml = `
+                    <div class="current-score">
+                        <span style="color:${homeColor}">${score.currentSetHome}</span>
+                        <span class="current-sep">-</span>
+                        <span style="color:${awayColor}">${score.currentSetAway}</span>
+                    </div>`;
+            }
+        }
+
+        return `
+        <div class="game-card">
+            <div class="card-meta">Court ${game.court}  ·  ${timeLabel}</div>
+            <span class="status-badge status-${status}">${status.replace('_', ' ')}</span>
+
+            <span class="team-home" style="color:${homeColor}">${esc(game.homeTeam ? game.homeTeam.name : '')}</span>
+            <span class="vs-sep">vs</span>
+            <span class="team-away" style="color:${awayColor}">${esc(game.awayTeam || '')}</span>
+
+            ${setsHtml ? '<div class="score-divider"></div>' : ''}
+            ${setsHtml}
+            ${currentHtml}
+        </div>`;
+    }
+
+    function esc(str) {
+        return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    refresh();
+    setInterval(refresh, 5000);
+</script>
+</body>
+</html>
