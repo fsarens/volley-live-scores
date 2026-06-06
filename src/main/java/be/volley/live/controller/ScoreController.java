@@ -3,6 +3,7 @@ package be.volley.live.controller;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,6 +13,7 @@ import be.volley.live.exception.ScoreConflictException;
 import be.volley.live.model.Game;
 import be.volley.live.model.Score;
 import be.volley.live.model.SetScore;
+import be.volley.live.model.TimeBlock;
 import be.volley.live.service.GameService;
 import be.volley.live.service.ScoreService;
 
@@ -27,10 +29,17 @@ public class ScoreController {
         this.scoreService = scoreService;
     }
 
-    /** All games for today ordered by time block + court */
+    /** All games for today ordered by time block + court, optionally filtered by timeBlock */
     @GetMapping("/today")
-    public List<Game> today() {
-        return gameService.getGamesByDate(LocalDate.now());
+    public List<Game> today(@RequestParam(required = false) String timeBlock) {
+        List<Game> games = gameService.getGamesByDate(LocalDate.now());
+        if (timeBlock != null && !timeBlock.isBlank()) {
+            try {
+                TimeBlock tb = TimeBlock.valueOf(timeBlock);
+                games = games.stream().filter(g -> tb.equals(g.getTimeBlock())).collect(Collectors.toList());
+            } catch (IllegalArgumentException ignored) { }
+        }
+        return games;
     }
 
     /** Current score for a game */

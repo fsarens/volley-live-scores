@@ -220,10 +220,13 @@
     setInterval(updateClock, 1000);
 
     // ── Data refresh ───────────────────────────────────────────────────────────
+    const TIME_BLOCK = /*[[${timeBlock}]]*/ '';
+
     async function refresh() {
         let games;
         try {
-            const r = await fetch('/api/games/today');
+            const url = '/api/games/today' + (TIME_BLOCK ? '?timeBlock=' + TIME_BLOCK : '');
+            const r = await fetch(url);
             if (!r.ok) return;
             games = await r.json();
         } catch (e) { return; }
