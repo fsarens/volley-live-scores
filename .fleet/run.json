@@ -3,6 +3,7 @@
         {
             "type": "spring-boot",
             "name": "Volley Live Scores (local)",
+            "module": "volley-live-scores",
             "mainClass": "be.volley.live.VolleyLiveScoresApplication",
             "activeProfiles": ["local"]
         }
