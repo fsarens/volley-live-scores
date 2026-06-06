@@ -216,6 +216,61 @@ class ScoreServiceTest {
         assertEquals(0, result.getCurrentSetAway());
     }
 
+    // --- set 5 side handling ---
+
+    @Test
+    void set5Starts_awaitingSet5SideChoiceIsTrue_andSidesNotAutoFlipped() {
+        // 3 sets each already won, score is 24-14 in set 4 (one point from ending)
+        Score s = score("game1", 24, 14, 4);
+        s.getSets().add(new SetScore(25, 20));
+        s.getSets().add(new SetScore(20, 25));
+        s.getSets().add(new SetScore(25, 18));
+        s.setHomeLeftSide(true); // home is currently on left
+        mockScore(s);
+
+        Score result = scoreService.addPointHome("game1", 0);
+
+        assertTrue(result.isAwaitingSet5SideChoice());
+        assertEquals(5, result.getCurrentSet());
+        assertTrue(result.isHomeLeftSide(), "homeLeftSide must NOT be auto-flipped for set 5");
+    }
+
+    @Test
+    void chooseSet5Side_setsHomeLeftSideAndClearsFlag() {
+        Score s = score("game1", 0, 0, 5);
+        s.setAwaitingSet5SideChoice(true);
+        mockScore(s);
+
+        Score result = scoreService.chooseSet5Side("game1", false);
+
+        assertFalse(result.isAwaitingSet5SideChoice());
+        assertFalse(result.isHomeLeftSide());
+    }
+
+    @Test
+    void set5_midSetSwitchAt8Points_flipsSide() {
+        Score s = score("game1", 7, 0, 5);
+        s.setHomeLeftSide(true);
+        mockScore(s);
+
+        Score result = scoreService.addPointHome("game1", 0); // home hits 8
+
+        assertFalse(result.isHomeLeftSide(), "sides must switch when a team reaches 8 in set 5");
+        assertTrue(result.isSet5SideSwitched());
+    }
+
+    @Test
+    void set5_midSetSwitchOnlyHappensOnce() {
+        Score s = score("game1", 9, 0, 5);
+        s.setHomeLeftSide(false);  // already switched
+        s.setSet5SideSwitched(true);
+        mockScore(s);
+
+        Score result = scoreService.addPointHome("game1", 0); // home at 10, past 8
+
+        assertFalse(result.isHomeLeftSide(), "sides must NOT flip again past 8");
+    }
+
     // --- helpers ---
 
     private Score score(String gameId, int home, int away, int set) {

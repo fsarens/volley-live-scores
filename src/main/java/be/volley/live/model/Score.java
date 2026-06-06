@@ -23,6 +23,8 @@ public class Score {
     private int currentSet = 1;   // set number 1-5
     private boolean homeLeftSide = true;  // flips each set
     private int version = 0;              // incremented on every point for optimistic concurrency
+    private boolean awaitingSet5SideChoice = false;  // true after set 4 ends; blocks scoring until sides chosen
+    private boolean set5SideSwitched = false;         // true after the 8-point mid-set switch in set 5
 
     public Score() {}
 
@@ -53,5 +55,11 @@ public class Score {
 
     public int getVersion() { return version; }
     public void setVersion(int version) { this.version = version; }
+
+    public boolean isAwaitingSet5SideChoice() { return awaitingSet5SideChoice; }
+    public void setAwaitingSet5SideChoice(boolean awaitingSet5SideChoice) { this.awaitingSet5SideChoice = awaitingSet5SideChoice; }
+
+    public boolean isSet5SideSwitched() { return set5SideSwitched; }
+    public void setSet5SideSwitched(boolean set5SideSwitched) { this.set5SideSwitched = set5SideSwitched; }
 
 }

@@ -90,10 +90,18 @@ public class ScoreController {
         return scoreService.undoLastPoint(id);
     }
 
+    /** Set the sides for set 5 after the coin toss */
+    @PostMapping("/{id}/set5side")
+    public Score chooseSet5Side(@PathVariable String id, @RequestBody Set5SideRequest request) {
+        return scoreService.chooseSet5Side(id, request.homeLeftSide());
+    }
+
     // --- Request records ---
 
     record StartGameRequest(boolean homeLeftSide, List<SetScore> sets) {}
 
     record PointRequest(int version) {}
+
+    record Set5SideRequest(boolean homeLeftSide) {}
 
 }

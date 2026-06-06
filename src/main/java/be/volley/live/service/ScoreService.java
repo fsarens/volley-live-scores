@@ -55,6 +55,9 @@ public class ScoreService {
     public Score addPointHome(String gameId, int expectedVersion) {
         Score score = getOrThrow(gameId);
         checkVersion(score, expectedVersion);
+        if (score.isAwaitingSet5SideChoice()) {
+            throw new IllegalStateException("Choose set 5 sides before scoring");
+        }
         score.setCurrentSetHome(score.getCurrentSetHome() + 1);
         return checkSetEnd(score, gameId);
     }
@@ -66,8 +69,22 @@ public class ScoreService {
     public Score addPointAway(String gameId, int expectedVersion) {
         Score score = getOrThrow(gameId);
         checkVersion(score, expectedVersion);
+        if (score.isAwaitingSet5SideChoice()) {
+            throw new IllegalStateException("Choose set 5 sides before scoring");
+        }
         score.setCurrentSetAway(score.getCurrentSetAway() + 1);
         return checkSetEnd(score, gameId);
+    }
+
+    /**
+     * Set the sides for set 5 after the coin toss.
+     */
+    public Score chooseSet5Side(String gameId, boolean homeLeftSide) {
+        Score score = getOrThrow(gameId);
+        score.setHomeLeftSide(homeLeftSide);
+        score.setAwaitingSet5SideChoice(false);
+        score.setVersion(score.getVersion() + 1);
+        return scoreRepository.save(score);
     }
 
     /**
@@ -99,6 +116,9 @@ public class ScoreService {
      * If so, record the set, switch sides, and advance to next set (or finish game).
      */
     private Score checkSetEnd(Score score, String gameId) {
+        // Check for set 5 mid-set side switch (at 8 points)
+        checkSet5SideSwitch(score);
+
         int home = score.getCurrentSetHome();
         int away = score.getCurrentSetAway();
         int setNumber = score.getCurrentSet();
@@ -113,8 +133,13 @@ public class ScoreService {
             score.setCurrentSetHome(0);
             score.setCurrentSetAway(0);
             score.setCurrentSet(setNumber + 1);
-            // Switch sides each set
-            score.setHomeLeftSide(!score.isHomeLeftSide());
+
+            // Set 5: scorer chooses sides after coin toss — do NOT auto-flip
+            if (score.getCurrentSet() == FINAL_SET) {
+                score.setAwaitingSet5SideChoice(true);
+            } else {
+                score.setHomeLeftSide(!score.isHomeLeftSide());
+            }
 
             // Check if match is over
             long homeSetsWon = score.getSets().stream().filter(s -> s.getHome() > s.getAway()).count();
@@ -126,6 +151,18 @@ public class ScoreService {
         }
 
         return scoreRepository.save(score);
+    }
+
+    /**
+     * In set 5, switch sides when either team first reaches 8 points.
+     */
+    private void checkSet5SideSwitch(Score score) {
+        if (score.getCurrentSet() != FINAL_SET) return;
+        if (score.isSet5SideSwitched()) return;
+        if (score.getCurrentSetHome() >= 8 || score.getCurrentSetAway() >= 8) {
+            score.setHomeLeftSide(!score.isHomeLeftSide());
+            score.setSet5SideSwitched(true);
+        }
     }
 
     private void finishGame(String gameId) {

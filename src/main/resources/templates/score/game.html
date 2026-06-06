@@ -355,6 +355,21 @@
     </div>
 </div>
 
+<!-- Set 5 side choice modal -->
+<div class="modal-overlay" id="set5-side-modal">
+    <div class="modal">
+        <h2>Set 5 — Choose Sides</h2>
+        <p style="margin-bottom:14px">Coin toss done. Which side is <span id="set5-home-name" style="font-weight:bold"></span> on?</p>
+        <div class="side-toggle" style="margin-bottom:16px">
+            <button class="side-btn active" id="set5-side-left"  onclick="selectSet5Side(true)">⬅ Home on Left</button>
+            <button class="side-btn"        id="set5-side-right" onclick="selectSet5Side(false)">Home on Right ➡</button>
+        </div>
+        <div class="modal-buttons">
+            <button class="btn btn-primary" onclick="confirmSet5Side()">Start Set 5</button>
+        </div>
+    </div>
+</div>
+
 <!-- Game end confirmation modal -->
 <div class="modal-overlay" id="game-confirm-modal">
     <div class="modal">
@@ -438,6 +453,26 @@
     }
 
     // Determine if a point would end the set
+    // ── Set 5 side choice ────────────────────────────────────────────────────
+    let set5HomeLeft = true;
+
+    function selectSet5Side(isLeft) {
+        set5HomeLeft = isLeft;
+        document.getElementById('set5-side-left').classList.toggle('active', isLeft);
+        document.getElementById('set5-side-right').classList.toggle('active', !isLeft);
+    }
+
+    async function confirmSet5Side() {
+        const res = await fetch(`/api/games/${GAME_ID}/set5side`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({homeLeftSide: set5HomeLeft})
+        });
+        score = await res.json();
+        document.getElementById('set5-side-modal').classList.remove('active');
+        renderScore();
+    }
+
     function wouldEndSet(s, side) {
         const h = s.currentSetHome + (side === 'home' ? 1 : 0);
         const a = s.currentSetAway + (side === 'away' ? 1 : 0);
@@ -519,7 +554,10 @@
         } else {
             score = data;
             renderScore();
-            if (data.currentSet > 5 || score.sets.filter(x=>x.home>x.away).length===3 || score.sets.filter(x=>x.away>x.home).length===3) {
+            if (data.awaitingSet5SideChoice) {
+                document.getElementById('set5-home-name').textContent = HOME_CODE;
+                document.getElementById('set5-side-modal').classList.add('active');
+            } else if (data.currentSet > 5 || score.sets.filter(x=>x.home>x.away).length===3 || score.sets.filter(x=>x.away>x.home).length===3) {
                 setTimeout(() => { window.location.href = '/score'; }, 1500);
             }
         }
