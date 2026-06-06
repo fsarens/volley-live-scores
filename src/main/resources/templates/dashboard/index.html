@@ -17,9 +17,9 @@
 
         /* ── Topbar ── */
         .topbar {
-            display: flex;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
             align-items: center;
-            justify-content: space-between;
             padding: 0 2vw;
             height: 9vh;
             background: rgba(0,0,0,0.35);
@@ -38,7 +38,14 @@
             color: #90caf9;
             letter-spacing: 0.05em;
         }
+        .topbar-center {
+            text-align: center;
+            font-size: 2.2vh;
+            color: rgba(255,255,255,0.55);
+            font-variant-numeric: tabular-nums;
+        }
         .topbar-right {
+            text-align: right;
             font-size: 2.2vh;
             color: rgba(255,255,255,0.55);
             font-variant-numeric: tabular-nums;
@@ -96,7 +103,7 @@
             letter-spacing: 0.06em;
             white-space: nowrap;
         }
-        .status-SCHEDULED  { background: #1a3a5c; color: #90caf9; }
+        .status-SCHEDULED   { background: #1a3a5c; color: #90caf9; }
         .status-IN_PROGRESS { background: #5c3000; color: #ffb74d; }
         .status-FINISHED    { background: #1a3c1a; color: #81c784; }
 
@@ -116,7 +123,6 @@
             margin: 1.2vh 0;
         }
 
-        /* divider line between teams and score */
         .score-divider {
             width: 40%;
             height: 1px;
@@ -128,12 +134,12 @@
             display: flex;
             align-items: baseline;
             gap: 1.2vw;
-            font-size: 9vh;
+            font-size: 18vh;
             font-weight: bold;
             line-height: 1;
         }
         .sets-sep {
-            font-size: 5vh;
+            font-size: 10vh;
             color: rgba(255,255,255,0.25);
         }
 
@@ -141,13 +147,13 @@
             display: flex;
             align-items: baseline;
             gap: 0.8vw;
-            font-size: 4vh;
+            font-size: 8vh;
             font-weight: bold;
             margin-top: 1.5vh;
             color: rgba(255,255,255,0.6);
         }
         .current-sep {
-            font-size: 2.5vh;
+            font-size: 5vh;
             color: rgba(255,255,255,0.2);
         }
 
@@ -168,20 +174,20 @@
         <span class="topbar-logo">🏐</span>
         <span class="topbar-title">WAVOC Live Scores</span>
     </div>
+    <div class="topbar-center" id="timeblock"></div>
     <div class="topbar-right" id="clock"></div>
 </div>
 
 <div class="main">
-    <div class="grid" id="grid">
-        <div class="no-games" id="no-games" style="display:none">No games today</div>
-    </div>
+    <div class="grid" id="grid"></div>
+    <div class="no-games" id="no-games" style="display:none">No games today</div>
 </div>
 
 <script>
     // ── Clock ──────────────────────────────────────────────────────────────────
     function updateClock() {
         const now = new Date();
-        const date = now.toLocaleDateString('en-BE', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' });
+        const date = now.toLocaleDateString('en-BE', { day: 'numeric', month: 'short' });
         const time = now.toLocaleTimeString('en-BE', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
         document.getElementById('clock').textContent = date + '  ·  ' + time;
     }
@@ -210,28 +216,34 @@
 
     // ── Render ─────────────────────────────────────────────────────────────────
     function renderGames(games, scores) {
-        const grid = document.getElementById('grid');
+        const grid    = document.getElementById('grid');
         const noGames = document.getElementById('no-games');
+        const tbEl    = document.getElementById('timeblock');
 
         if (!games || games.length === 0) {
             grid.innerHTML = '';
-            grid.appendChild(noGames);
+            grid.style.display = 'none';
             noGames.style.display = 'flex';
+            tbEl.textContent = '';
             return;
         }
-        noGames.style.display = 'none';
 
+        grid.style.display = 'flex';
+        noGames.style.display = 'none';
         grid.innerHTML = games.map((game, i) => renderCard(game, scores[i])).join('');
+
+        // Show unique timeblocks in topbar center
+        const blocks = [...new Set(games.map(g => g.timeBlock).filter(Boolean))]
+            .map(b => b.replace('BLOCK_', '') + ':00')
+            .join('  ·  ');
+        tbEl.textContent = blocks;
     }
 
     function renderCard(game, score) {
         const homeColor = (game.homeTeam && game.homeTeam.color) || '#ffffff';
-        const awayColor = game.awayColor || '#cccccc';
         const status    = game.status || 'SCHEDULED';
-        const timeLabel = game.timeBlock ? game.timeBlock.replace('BLOCK_', '') + ':00' : '';
 
-        // Sets won
-        let setsHtml = '';
+        let setsHtml    = '';
         let currentHtml = '';
 
         if (score && (status === 'IN_PROGRESS' || status === 'FINISHED')) {
@@ -242,7 +254,7 @@
                 <div class="sets-score">
                     <span style="color:${homeColor}">${homeSets}</span>
                     <span class="sets-sep">-</span>
-                    <span style="color:${awayColor}">${awaySets}</span>
+                    <span style="color:#aaaaaa">${awaySets}</span>
                 </div>`;
 
             if (status === 'IN_PROGRESS') {
@@ -250,19 +262,19 @@
                     <div class="current-score">
                         <span style="color:${homeColor}">${score.currentSetHome}</span>
                         <span class="current-sep">-</span>
-                        <span style="color:${awayColor}">${score.currentSetAway}</span>
+                        <span style="color:#aaaaaa">${score.currentSetAway}</span>
                     </div>`;
             }
         }
 
         return `
         <div class="game-card">
-            <div class="card-meta">Court ${game.court}  ·  ${timeLabel}</div>
+            <div class="card-meta">Court ${game.court}</div>
             <span class="status-badge status-${status}">${status.replace('_', ' ')}</span>
 
             <span class="team-home" style="color:${homeColor}">${esc(game.homeTeam ? game.homeTeam.name : '')}</span>
             <span class="vs-sep">vs</span>
-            <span class="team-away" style="color:${awayColor}">${esc(game.awayTeam || '')}</span>
+            <span class="team-away" style="color:#aaaaaa">${esc(game.awayTeam || '')}</span>
 
             ${setsHtml ? '<div class="score-divider"></div>' : ''}
             ${setsHtml}
