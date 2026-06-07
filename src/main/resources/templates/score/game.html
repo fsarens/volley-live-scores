@@ -574,7 +574,7 @@
             if (data.awaitingSet5SideChoice) {
                 document.getElementById('set5-home-name').textContent = HOME_CODE;
                 document.getElementById('set5-side-modal').classList.add('active');
-            } else if (data.currentSet > 5 || score.sets.filter(x=>x.home>x.away).length===3 || score.sets.filter(x=>x.away>x.home).length===3) {
+            } else if (!data.bonusSet && (data.currentSet > 5 || score.sets.filter(x=>x.home>x.away).length===3 || score.sets.filter(x=>x.away>x.home).length===3)) {
                 setTimeout(() => { window.location.href = '/score'; }, 1500);
             }
         }
