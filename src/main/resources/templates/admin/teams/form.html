@@ -69,6 +69,18 @@
         </div>
     </div>
 
+    <div class="form-row">
+        <div class="form-group">
+            <label>Game rules</label>
+            <select name="gameRules" required>
+                <option th:each="gr : ${gameRulesList}"
+                        th:value="${gr}"
+                        th:text="${gr}"
+                        th:selected="${team.gameRules == gr}"></option>
+            </select>
+        </div>
+    </div>
+
     <fieldset>
         <legend>Sponsor 1</legend>
         <div class="form-row">
