@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import be.volley.live.model.*;
 import be.volley.live.service.GameService;
 import be.volley.live.service.TeamService;
+import be.volley.live.model.GameRules;
 
 @Controller
 @RequestMapping("/admin")
@@ -41,6 +42,7 @@ public class AdminController {
         model.addAttribute("courts", Court.values());
         model.addAttribute("newGame", new Game());
         model.addAttribute("colors", COLORS);
+        model.addAttribute("gameRulesList", GameRules.values());
         return "admin/index";
     }
 
@@ -52,6 +54,7 @@ public class AdminController {
             @RequestParam String awayColor,
             @RequestParam TimeBlock timeBlock,
             @RequestParam Court court,
+            @RequestParam GameRules gameRules,
             Model model) {
 
         LocalDate localDate = LocalDate.parse(date);
@@ -67,6 +70,7 @@ public class AdminController {
         game.setAwayColor(awayColor);
         game.setTimeBlock(timeBlock);
         game.setCourt(court);
+        game.setGameRules(gameRules);
 
         try {
             gameService.createGame(game);
@@ -79,6 +83,7 @@ public class AdminController {
             model.addAttribute("courts", Court.values());
             model.addAttribute("newGame", game);
             model.addAttribute("colors", COLORS);
+            model.addAttribute("gameRulesList", GameRules.values());
             return "admin/index";
         }
 

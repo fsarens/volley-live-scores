@@ -30,6 +30,9 @@ public class Team implements Serializable {
 	/* soft delete — inactive teams are hidden from game planning and ranking */
 	private boolean active = true;
 
+	/* game rules applied by default for this team's home games */
+	private GameRules gameRules = GameRules.YOUTH;
+
 	/* code of the reeks for this team with volleyscore */
 	private String reeks;
 
@@ -113,6 +116,9 @@ public class Team implements Serializable {
 
 	public boolean isActive() { return active; }
 	public void setActive(boolean active) { this.active = active; }
+
+	public GameRules getGameRules() { return gameRules; }
+	public void setGameRules(GameRules gameRules) { this.gameRules = gameRules; }
 
 	public Sponsor getSponsor2() {
 		return sponsor2;

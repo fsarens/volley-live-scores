@@ -274,6 +274,13 @@
 <!-- Conflict banner -->
 <div id="conflict-banner"></div>
 
+<!-- Youth bonus set banner -->
+<div id="bonus-set-banner" style="display:none; position:fixed; top:0; left:0; right:0;
+     background:#f9a825; color:#000; padding:10px 16px; text-align:center;
+     font-weight:bold; font-size:1.1em; z-index:59;">
+    🏐 Youth rules — 4th set (does not count)
+</div>
+
 <!-- Top bar -->
 <div id="topbar">
     <div id="topbar-left"><a href="/score">← Games</a></div>
@@ -618,6 +625,10 @@
         leftSetsEl.style.color  = leftColor;
         rightSetsEl.textContent = rightSets;
         rightSetsEl.style.color = rightColor;
+
+        // Youth bonus set banner
+        const bonusBanner = document.getElementById('bonus-set-banner');
+        bonusBanner.style.display = score.bonusSet ? 'block' : 'none';
 
         // Topbar: current set in middle
         document.getElementById('topbar-set').textContent = `Set ${score.currentSet}`;
