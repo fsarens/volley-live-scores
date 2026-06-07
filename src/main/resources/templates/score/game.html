@@ -404,6 +404,7 @@
     const AWAY_COLOR  = /*[[${game.awayColor ?: '#c62828'}]]*/ '#c62828';
     const AWAY_NAME   = /*[[${game.awayTeam}]]*/ '';
     const GAME_STATUS = /*[[${game.status.name()}]]*/ 'SCHEDULED';
+    const GAME_RULES  = /*[[${game.gameRules.name()}]]*/ 'YOUTH';
 
     // State
     let score = null;
@@ -494,9 +495,14 @@
     // Determine if a point would end the match
     function wouldEndMatch(s, side) {
         if (!wouldEndSet(s, side)) return false;
+        // Bonus set ends the game regardless of score
+        if (s.bonusSet) return true;
         const homeSets = s.sets.filter(x => x.home > x.away).length + (side === 'home' ? 1 : 0);
         const awaySets = s.sets.filter(x => x.away > x.home).length + (side === 'away' ? 1 : 0);
-        return homeSets === 3 || awaySets === 3;
+        if (homeSets !== 3 && awaySets !== 3) return false;
+        // Youth rules: 3-0 in set 3 triggers a bonus set, not a game end
+        if (GAME_RULES === 'YOUTH' && s.currentSet === 3 && homeSets + awaySets === 3) return false;
+        return true;
     }
 
     async function addPoint(side) {
