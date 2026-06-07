@@ -24,6 +24,8 @@ public class Team implements Serializable {
 	private League league;
 
 
+	private String tenantId;
+
 	/* team color for the scoring UI */
 	private TeamColor color = TeamColor.BLUE;
 
@@ -117,6 +119,9 @@ public class Team implements Serializable {
 
 	public boolean isActive() { return active; }
 	public void setActive(boolean active) { this.active = active; }
+
+	public String getTenantId() { return tenantId; }
+	public void setTenantId(String tenantId) { this.tenantId = tenantId; }
 
 	public GameRules getGameRules() { return gameRules; }
 	public void setGameRules(GameRules gameRules) { this.gameRules = gameRules; }
