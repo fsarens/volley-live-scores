@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestRedirectFilter;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
@@ -25,15 +26,15 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
             .addFilterBefore(new DashboardTokenFilter(dashboardTokenRepository),
-                    UsernamePasswordAuthenticationFilter.class)
+                    OAuth2AuthorizationRequestRedirectFilter.class)
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/admin/**").hasRole("ADMIN")
-                .requestMatchers("/score/**", "/scorer/**").hasAnyRole("ADMIN", "SCORER")
-                .requestMatchers("/dashboard/**", "/api/**").hasAnyRole("ADMIN", "SCORER", "DASHBOARD")
+                .requestMatchers("/admin", "/admin/**").hasRole("ADMIN")
+                .requestMatchers("/score", "/score/**", "/scorer", "/scorer/**").hasAnyRole("ADMIN", "SCORER")
+                .requestMatchers("/dashboard", "/dashboard/**", "/api", "/api/**").hasAnyRole("ADMIN", "SCORER", "DASHBOARD")
                 .anyRequest().authenticated()
             )
             .oauth2Login(oauth2 -> oauth2
-                .userInfoEndpoint(u -> u.userService(appOAuth2UserService))
+                .userInfoEndpoint(u -> u.oidcUserService(appOAuth2UserService))
                 .defaultSuccessUrl("/score", true)
                 .failureUrl("/login?error=true")
             )

@@ -8,7 +8,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -32,16 +34,26 @@ public class DashboardTokenFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
 
-        String token = request.getParameter("token");
-        if (token != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            Optional<DashboardToken> dashboardToken = dashboardTokenRepository.findByToken(token);
-            if (dashboardToken.isPresent()) {
-                UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
-                        "dashboard:" + dashboardToken.get().getTenantId(),
-                        null,
-                        List.of(new SimpleGrantedAuthority("ROLE_DASHBOARD"))
-                );
-                SecurityContextHolder.getContext().setAuthentication(auth);
+        // If already authenticated (e.g. from session), skip token check
+        if (SecurityContextHolder.getContext().getAuthentication() == null
+                || !SecurityContextHolder.getContext().getAuthentication().isAuthenticated()) {
+
+            String token = request.getParameter("token");
+            if (token != null) {
+                Optional<DashboardToken> dashboardToken = dashboardTokenRepository.findByToken(token);
+                if (dashboardToken.isPresent()) {
+                    UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
+                            "dashboard:" + dashboardToken.get().getTenantId(),
+                            null,
+                            List.of(new SimpleGrantedAuthority("ROLE_DASHBOARD"))
+                    );
+                    SecurityContext context = SecurityContextHolder.createEmptyContext();
+                    context.setAuthentication(auth);
+                    SecurityContextHolder.setContext(context);
+                    // Save to session so subsequent API calls don't need the token
+                    new HttpSessionSecurityContextRepository()
+                            .saveContext(context, request, response);
+                }
             }
         }
 
