@@ -4,6 +4,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import be.volley.live.model.GameRules;
 import be.volley.live.model.League;
 import be.volley.live.model.Sponsor;
 import be.volley.live.model.Team;
@@ -39,6 +40,7 @@ public class AdminTeamController {
         model.addAttribute("team", new Team());
         model.addAttribute("leagues", League.values());
         model.addAttribute("colors", COLORS);
+        model.addAttribute("gameRulesList", GameRules.values());
         return "admin/teams/form";
     }
 
@@ -49,6 +51,7 @@ public class AdminTeamController {
             @RequestParam League league,
             @RequestParam(required = false) String reeks,
             @RequestParam String color,
+            @RequestParam GameRules gameRules,
             @RequestParam(required = false) String sponsor1Name,
             @RequestParam(required = false) String sponsor1Logo,
             @RequestParam(required = false) String sponsor2Name,
@@ -61,6 +64,7 @@ public class AdminTeamController {
         team.setLeague(league);
         team.setReeks(reeks != null ? reeks.trim() : null);
         team.setColor(color);
+        team.setGameRules(gameRules);
         if (sponsor1Name != null && !sponsor1Name.isBlank()) {
             Sponsor s = new Sponsor(); s.setName(sponsor1Name); s.setLogo(sponsor1Logo);
             team.setSponsor(s);
@@ -77,6 +81,7 @@ public class AdminTeamController {
             model.addAttribute("team", team);
             model.addAttribute("leagues", League.values());
             model.addAttribute("colors", COLORS);
+            model.addAttribute("gameRulesList", GameRules.values());
             return "admin/teams/form";
         }
 
@@ -90,6 +95,7 @@ public class AdminTeamController {
         model.addAttribute("team", team);
         model.addAttribute("leagues", League.values());
         model.addAttribute("colors", COLORS);
+        model.addAttribute("gameRulesList", GameRules.values());
         return "admin/teams/form";
     }
 
@@ -101,6 +107,7 @@ public class AdminTeamController {
             @RequestParam League league,
             @RequestParam(required = false) String reeks,
             @RequestParam String color,
+            @RequestParam GameRules gameRules,
             @RequestParam(required = false) String sponsor1Name,
             @RequestParam(required = false) String sponsor1Logo,
             @RequestParam(required = false) String sponsor2Name,
@@ -115,6 +122,7 @@ public class AdminTeamController {
         team.setLeague(league);
         team.setReeks(reeks != null ? reeks.trim() : null);
         team.setColor(color);
+        team.setGameRules(gameRules);
 
         Sponsor s1 = sponsor1Name != null && !sponsor1Name.isBlank() ? new Sponsor() : null;
         if (s1 != null) { s1.setName(sponsor1Name); s1.setLogo(sponsor1Logo); }

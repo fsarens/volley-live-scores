@@ -19,6 +19,8 @@ public class Game {
 
     private GameStatus status = GameStatus.SCHEDULED;
 
+    private GameRules gameRules = GameRules.YOUTH;
+
     public Game() {}
 
     public String getId() { return id; }
@@ -44,5 +46,8 @@ public class Game {
 
     public GameStatus getStatus() { return status; }
     public void setStatus(GameStatus status) { this.status = status; }
+
+    public GameRules getGameRules() { return gameRules; }
+    public void setGameRules(GameRules gameRules) { this.gameRules = gameRules; }
 
 }

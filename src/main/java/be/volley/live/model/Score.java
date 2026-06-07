@@ -25,6 +25,8 @@ public class Score {
     private int version = 0;              // incremented on every point for optimistic concurrency
     private boolean awaitingSet5SideChoice = false;  // true after set 4 ends; blocks scoring until sides chosen
     private boolean set5SideSwitched = false;         // true after the 8-point mid-set switch in set 5
+    private boolean bonusSet = false;                 // true when playing youth rules bonus set 4 (does not count)
+    private GameRules gameRules = GameRules.YOUTH;    // copied from Game at start; drives bonus set logic
 
     public Score() {}
 
@@ -61,5 +63,11 @@ public class Score {
 
     public boolean isSet5SideSwitched() { return set5SideSwitched; }
     public void setSet5SideSwitched(boolean set5SideSwitched) { this.set5SideSwitched = set5SideSwitched; }
+
+    public boolean isBonusSet() { return bonusSet; }
+    public void setBonusSet(boolean bonusSet) { this.bonusSet = bonusSet; }
+
+    public GameRules getGameRules() { return gameRules; }
+    public void setGameRules(GameRules gameRules) { this.gameRules = gameRules; }
 
 }

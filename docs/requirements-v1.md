@@ -208,8 +208,9 @@ All MVP features shipped:
 
 ## 9. Backlog — v2
 
-- [x] **Cloud hosting** — deployed to Railway with MongoDB Atlas; auto-deploy on PR merge to main
-- [x] **Score simulator / fast input** — `?dev=true` URL flag disables hold requirement; orange DEV MODE badge shown
+### 🔴 High Priority
+
+- [ ] **Color readability on dashboard** — verify all home/away color combinations are readable from 10m on a TV screen; dark background makes some combos (e.g. purple vs blue) hard to distinguish; may need contrast check and palette restriction
 - [ ] **Youth game format** — youth games always play all 4 sets regardless of match score; needs a boolean flag (e.g. `alwaysPlayAllSets`) on Game level; scoring logic must skip match-won check for sets 1-3 when flag is set
 - [ ] **Security / login** — Google OAuth2 via Spring Security; club already uses Google so all members have accounts
   - **Admin role** — manage teams and games; granted per Google account in MongoDB
@@ -217,9 +218,20 @@ All MVP features shipped:
   - **Dashboard** — no login; protected by a secret URL token (e.g. `?token=abc123`) so it can run unattended on a TV/OptiSigns
   - Needs: Google Cloud OAuth2 client ID + secret; `User` collection in MongoDB storing Google subject ID + role
 
+### 🟡 Normal Priority
+
+- [ ] **Dashboard refresh optimisation** — finished games have no live score to update; skip score fetch for FINISHED games to reduce unnecessary polling; consider stopping refresh entirely when all games are finished
+- [ ] **Scorer overview refresh** — evaluate whether 5s auto-refresh is needed on the game list (`/score`); scorers navigate manually so polling may be unnecessary overhead
+
+### ✅ Done
+
+- [x] **Cloud hosting** — deployed to Railway with MongoDB Atlas; auto-deploy on PR merge to main
+- [x] **Score simulator / fast input** — `?dev=true` URL flag disables hold requirement; orange DEV MODE badge shown
+
 ## 10. Backlog — v3 (after summer, September+)
 
 - [ ] **VolleyScore game fetching API** — fetch official game schedule and results from the VVB/Sporta league API; new season starts in September so API data is not available before then
+- [ ] **MongoDB IP whitelist** — Atlas currently allows all IPs (0.0.0.0/0); blocked by Railway Pro ($20/month) needed for static egress IPs; local dev can use NordVPN dedicated IP; revisit after summer
 
 ## 11. Testing Backlog
 

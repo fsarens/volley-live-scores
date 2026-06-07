@@ -220,12 +220,16 @@ class ScoreServiceTest {
 
     @Test
     void set5Starts_awaitingSet5SideChoiceIsTrue_andSidesNotAutoFlipped() {
-        // 3 sets each already won, score is 24-14 in set 4 (one point from ending)
+        // 2-2 in sets, score is 24-14 in set 4 (one point from ending set 4)
         Score s = score("game1", 24, 14, 4);
-        s.getSets().add(new SetScore(25, 20));
-        s.getSets().add(new SetScore(20, 25));
-        s.getSets().add(new SetScore(25, 18));
+        s.getSets().add(new SetScore(25, 20)); // home wins set 1
+        s.getSets().add(new SetScore(20, 25)); // away wins set 2
+        s.getSets().add(new SetScore(18, 25)); // away wins set 3
+        s.getSets().add(new SetScore(25, 20)); // home wins set 4 — will be added by addPointHome
+        // Remove last — only 3 sets are done, set 4 is in progress
+        s.getSets().remove(3);
         s.setHomeLeftSide(true); // home is currently on left
+        s.setGameRules(be.volley.live.model.GameRules.ADULT);
         mockScore(s);
 
         Score result = scoreService.addPointHome("game1", 0);
@@ -271,6 +275,74 @@ class ScoreServiceTest {
         assertFalse(result.isHomeLeftSide(), "sides must NOT flip again past 8");
     }
 
+    // --- youth game rules ---
+
+    @Test
+    void youthRules_3_0_triggersBonusSet() {
+        // Youth game, home about to win 3-0: 2 sets already won by home, set 3 at 24-10
+        Score s = score("game1", 24, 10, 3);
+        s.getSets().add(new SetScore(25, 18)); // home wins set 1
+        s.getSets().add(new SetScore(25, 20)); // home wins set 2
+        s.setGameRules(be.volley.live.model.GameRules.YOUTH);
+        mockScore(s);
+
+        Score result = scoreService.addPointHome("game1", 0);
+
+        assertTrue(result.isBonusSet(), "youth 3-0 must trigger a bonus set 4");
+        assertEquals(4, result.getCurrentSet());
+        assertFalse(result.isAwaitingSet5SideChoice());
+    }
+
+    @Test
+    void youthRules_bonusSetEndsGame() {
+        // In the bonus set, home wins it — game must end
+        Score s = score("game1", 24, 10, 4);
+        s.getSets().add(new SetScore(25, 18));
+        s.getSets().add(new SetScore(25, 20));
+        s.getSets().add(new SetScore(25, 15));
+        s.setBonusSet(true);
+        s.setGameRules(be.volley.live.model.GameRules.YOUTH);
+        mockScore(s);
+        mockGame("game1");
+
+        scoreService.addPointHome("game1", 0);
+
+        verify(gameRepository).save(argThat(g -> g.getStatus() == GameStatus.FINISHED));
+    }
+
+    @Test
+    void adultRules_3_0_endsGame() {
+        // Adult rules: 3-0 ends the game, no bonus set
+        Score s = score("game1", 24, 10, 3);
+        s.getSets().add(new SetScore(25, 18));
+        s.getSets().add(new SetScore(25, 20));
+        s.setGameRules(be.volley.live.model.GameRules.ADULT);
+        mockScore(s);
+        mockGame("game1");
+
+        Score result = scoreService.addPointHome("game1", 0);
+
+        assertFalse(result.isBonusSet(), "adult 3-0 must NOT trigger a bonus set");
+        verify(gameRepository).save(argThat(g -> g.getStatus() == GameStatus.FINISHED));
+    }
+
+    @Test
+    void youthRules_3_1_endsGame() {
+        // Youth rules: 3-1 is not 3-0, so no bonus set — game ends normally
+        Score s = score("game1", 24, 10, 4);
+        s.getSets().add(new SetScore(25, 18)); // home wins
+        s.getSets().add(new SetScore(20, 25)); // away wins
+        s.getSets().add(new SetScore(25, 15)); // home wins
+        s.setGameRules(be.volley.live.model.GameRules.YOUTH);
+        mockScore(s);
+        mockGame("game1");
+
+        Score result = scoreService.addPointHome("game1", 0);
+
+        assertFalse(result.isBonusSet());
+        verify(gameRepository).save(argThat(g -> g.getStatus() == GameStatus.FINISHED));
+    }
+
     // --- helpers ---
 
     private Score score(String gameId, int home, int away, int set) {
@@ -284,6 +356,14 @@ class ScoreServiceTest {
 
     private void mockScore(Score s) {
         when(scoreRepository.findByGameId(s.getGameId())).thenReturn(Optional.of(s));
+    }
+
+    private void mockGame(String gameId) {
+        Game g = new Game();
+        g.setId(gameId);
+        g.setStatus(GameStatus.IN_PROGRESS);
+        lenient().when(gameRepository.findById(gameId)).thenReturn(Optional.of(g));
+        lenient().when(gameRepository.save(any())).thenAnswer(i -> i.getArgument(0));
     }
 
 }

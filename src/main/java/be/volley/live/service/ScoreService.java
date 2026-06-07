@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 
 import be.volley.live.exception.ScoreConflictException;
 import be.volley.live.model.Game;
+import be.volley.live.model.GameRules;
 import be.volley.live.model.GameStatus;
 import be.volley.live.model.Score;
 import be.volley.live.model.SetScore;
@@ -31,16 +32,21 @@ public class ScoreService {
 
     /**
      * Start tracking a game. If joining late, caller can set initial set scores.
+     * Copies gameRules from the Game document so ScoreService doesn't need to re-fetch it later.
      */
     public Score startGame(String gameId, Score initialScore) {
-        // Update game status to IN_PROGRESS
+        Score score = initialScore != null ? initialScore : new Score(gameId);
+        score.setGameId(gameId);
+
         gameRepository.findById(gameId).ifPresent(game -> {
             game.setStatus(GameStatus.IN_PROGRESS);
             gameRepository.save(game);
+            // Copy game rules onto score so scoring logic doesn't need to re-join
+            if (game.getGameRules() != null) {
+                score.setGameRules(game.getGameRules());
+            }
         });
 
-        Score score = initialScore != null ? initialScore : new Score(gameId);
-        score.setGameId(gameId);
         return scoreRepository.save(score);
     }
 
@@ -128,25 +134,40 @@ public class ScoreService {
         boolean awayWinsSet = away >= pointsToWin && (away - home) >= MIN_WIN_MARGIN;
 
         if (homeWinsSet || awayWinsSet) {
-            // Record completed set
+            // Record completed set (bonus set is recorded too, but excluded from match score)
             score.getSets().add(new SetScore(home, away));
             score.setCurrentSetHome(0);
             score.setCurrentSetAway(0);
-            score.setCurrentSet(setNumber + 1);
 
-            // Set 5: scorer chooses sides after coin toss — do NOT auto-flip
-            if (score.getCurrentSet() == FINAL_SET) {
-                score.setAwaitingSet5SideChoice(true);
-            } else {
-                score.setHomeLeftSide(!score.isHomeLeftSide());
+            // If we just finished the bonus set → game over regardless of score
+            if (score.isBonusSet()) {
+                score.setBonusSet(false);
+                finishGame(gameId);
+                return scoreRepository.save(score);
             }
 
-            // Check if match is over
+            score.setCurrentSet(setNumber + 1);
+
+            // Count sets won (excluding bonus set — bonus set is the last entry if bonusSet was true,
+            // but we cleared it above so count only the sets up to now minus the would-be bonus)
             long homeSetsWon = score.getSets().stream().filter(s -> s.getHome() > s.getAway()).count();
             long awaySetsWon = score.getSets().stream().filter(s -> s.getAway() > s.getHome()).count();
 
             if (homeSetsWon == SETS_TO_WIN || awaySetsWon == SETS_TO_WIN) {
-                finishGame(gameId);
+                // One team has won 3 sets
+                if (score.getGameRules() == GameRules.YOUTH && setNumber == 3) {
+                    // 3-0 in youth rules → play bonus set 4 (doesn't count)
+                    score.setBonusSet(true);
+                    score.setHomeLeftSide(!score.isHomeLeftSide());
+                } else {
+                    // Adult rules, or 3-1 which ends the game normally
+                    finishGame(gameId);
+                }
+            } else if (score.getCurrentSet() == FINAL_SET) {
+                // Set 5: scorer chooses sides after coin toss — do NOT auto-flip
+                score.setAwaitingSet5SideChoice(true);
+            } else {
+                score.setHomeLeftSide(!score.isHomeLeftSide());
             }
         }
 

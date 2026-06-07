@@ -274,6 +274,13 @@
 <!-- Conflict banner -->
 <div id="conflict-banner"></div>
 
+<!-- Youth bonus set banner -->
+<div id="bonus-set-banner" style="display:none; position:fixed; top:0; left:0; right:0;
+     background:#f9a825; color:#000; padding:10px 16px; text-align:center;
+     font-weight:bold; font-size:1.1em; z-index:59;">
+    🏐 Youth rules — 4th set (does not count)
+</div>
+
 <!-- Top bar -->
 <div id="topbar">
     <div id="topbar-left"><a href="/score">← Games</a></div>
@@ -397,6 +404,7 @@
     const AWAY_COLOR  = /*[[${game.awayColor ?: '#c62828'}]]*/ '#c62828';
     const AWAY_NAME   = /*[[${game.awayTeam}]]*/ '';
     const GAME_STATUS = /*[[${game.status.name()}]]*/ 'SCHEDULED';
+    const GAME_RULES  = /*[[${game.gameRules.name()}]]*/ 'YOUTH';
 
     // State
     let score = null;
@@ -487,9 +495,14 @@
     // Determine if a point would end the match
     function wouldEndMatch(s, side) {
         if (!wouldEndSet(s, side)) return false;
+        // Bonus set ends the game regardless of score
+        if (s.bonusSet) return true;
         const homeSets = s.sets.filter(x => x.home > x.away).length + (side === 'home' ? 1 : 0);
         const awaySets = s.sets.filter(x => x.away > x.home).length + (side === 'away' ? 1 : 0);
-        return homeSets === 3 || awaySets === 3;
+        if (homeSets !== 3 && awaySets !== 3) return false;
+        // Youth rules: 3-0 in set 3 triggers a bonus set, not a game end
+        if (GAME_RULES === 'YOUTH' && s.currentSet === 3 && homeSets + awaySets === 3) return false;
+        return true;
     }
 
     async function addPoint(side) {
@@ -561,7 +574,7 @@
             if (data.awaitingSet5SideChoice) {
                 document.getElementById('set5-home-name').textContent = HOME_CODE;
                 document.getElementById('set5-side-modal').classList.add('active');
-            } else if (data.currentSet > 5 || score.sets.filter(x=>x.home>x.away).length===3 || score.sets.filter(x=>x.away>x.home).length===3) {
+            } else if (!data.bonusSet && (data.currentSet > 5 || score.sets.filter(x=>x.home>x.away).length===3 || score.sets.filter(x=>x.away>x.home).length===3)) {
                 setTimeout(() => { window.location.href = '/score'; }, 1500);
             }
         }
@@ -618,6 +631,10 @@
         leftSetsEl.style.color  = leftColor;
         rightSetsEl.textContent = rightSets;
         rightSetsEl.style.color = rightColor;
+
+        // Youth bonus set banner
+        const bonusBanner = document.getElementById('bonus-set-banner');
+        bonusBanner.style.display = score.bonusSet ? 'block' : 'none';
 
         // Topbar: current set in middle
         document.getElementById('topbar-set').textContent = `Set ${score.currentSet}`;
