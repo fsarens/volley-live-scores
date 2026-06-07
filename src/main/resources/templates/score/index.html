@@ -49,9 +49,9 @@
     </div>
     <div class="game-teams">
         <span th:text="${game.homeTeam.name}"
-              th:style="${'color: ' + (game.homeTeam.color ?: '#ffffff')}"></span>
+              th:style="${'color: ' + (game.homeTeam.color?.hex ?: '#ffffff')}"></span>
         <span class="team-vs">vs</span>
-        <span th:text="${game.awayTeam}" th:style="${'color: ' + (game.awayColor ?: '#cccccc')}"></span>
+        <span th:text="${game.awayTeam}" th:style="${'color: ' + (game.awayColor?.hex ?: '#cccccc')}"></span>
     </div>
     <div class="game-score" th:if="${game.status.name() == 'IN_PROGRESS' or game.status.name() == 'FINISHED'}">
         <span th:id="${'score-' + game.id}">loading...</span>

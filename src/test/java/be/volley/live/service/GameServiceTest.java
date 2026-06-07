@@ -113,9 +113,9 @@ class GameServiceTest {
         Team homeTeam = new Team();
         homeTeam.setCode("DA");
         homeTeam.setName("Dames A");
-        homeTeam.setColor("#1565c0");
+        homeTeam.setColor(TeamColor.BLUE);
         game.setHomeTeam(homeTeam);
-        game.setAwayColor("#1565c0");
+        game.setAwayColor(TeamColor.BLUE);
 
         when(gameRepository.existsByDateAndCourtAndTimeBlock(any(), any(), any())).thenReturn(false);
         when(gameRepository.existsByDateAndHomeTeamCodeAndTimeBlock(any(), any(), any())).thenReturn(false);
@@ -129,9 +129,9 @@ class GameServiceTest {
         Team homeTeam = new Team();
         homeTeam.setCode("DA");
         homeTeam.setName("Dames A");
-        homeTeam.setColor("#1565c0");
+        homeTeam.setColor(TeamColor.BLUE);
         game.setHomeTeam(homeTeam);
-        game.setAwayColor("#c62828");
+        game.setAwayColor(TeamColor.RED);
 
         when(gameRepository.existsByDateAndCourtAndTimeBlock(game.getDate(), game.getCourt(), game.getTimeBlock()))
                 .thenReturn(false);
