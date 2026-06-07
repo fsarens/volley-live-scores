@@ -220,6 +220,14 @@ All MVP features shipped:
 
 ### 🟡 Normal Priority
 
+- [ ] **Google Cloud Console branding** — OAuth2 app is published (no more test user list); complete the branding fields (logo, privacy policy, support email, terms of service) before onboarding a second tenant; low priority until then
+- [ ] **Admin game list — sections per timeblock** — group games by timeblock on the admin day view; each timeblock is a collapsible or static section header (e.g. "10:00", "12:00"); makes it easier to scan a full match day at a glance
+- [ ] **Admin add game — per timeblock** — show an "Add game" button inside each timeblock section; clicking prefills the timeblock field in the add game form so the admin doesn't have to select it manually
+- [ ] **Dashboard — upcoming games ribbon** — optional bottom ribbon showing planned (SCHEDULED) games for the next timeblock(s) today; controlled via URL parameter (e.g. `?ribbon=true` or `?ribbon=1` for next 1 timeblock); useful for screens that display live scores but also want to preview what's coming next
+
+- [ ] **Profile icon + logout** — show a small profile avatar (Google picture or initials) in the top corner of all authenticated views (admin, scorer); clicking opens a dropdown with logout option
+- [ ] **Role switcher for admin** — admin can switch between admin, scorer, and dashboard views from a dropdown on the profile icon, without navigating manually to each URL; dashboard view should pass the token automatically so admin can preview what OptiSigns sees
+
 - [ ] **Dashboard refresh optimisation** — finished games have no live score to update; skip score fetch for FINISHED games to reduce unnecessary polling; consider stopping refresh entirely when all games are finished
 - [ ] **Scorer overview refresh** — evaluate whether 5s auto-refresh is needed on the game list (`/score`); scorers navigate manually so polling may be unnecessary overhead
 
