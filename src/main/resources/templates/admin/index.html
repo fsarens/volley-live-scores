@@ -146,13 +146,17 @@
     teamRules[/*[[${team.code}]]*/ ''] = /*[[${team.gameRules}]]*/ 'YOUTH';
     /*[/]*/
 
-    document.querySelector('select[name="homeTeamCode"]').addEventListener('change', function() {
-        const rules = teamRules[this.value] || 'YOUTH';
+    function syncGameRules(teamCode) {
+        const rules = teamRules[teamCode] || 'YOUTH';
         const sel = document.getElementById('gameRulesSelect');
         for (let i = 0; i < sel.options.length; i++) {
             if (sel.options[i].value === rules) { sel.selectedIndex = i; break; }
         }
-    });
+    }
+
+    const homeTeamSel = document.querySelector('select[name="homeTeamCode"]');
+    homeTeamSel.addEventListener('change', function() { syncGameRules(this.value); });
+    syncGameRules(homeTeamSel.value); // set correct default on page load
 </script>
 </body>
 </html>
