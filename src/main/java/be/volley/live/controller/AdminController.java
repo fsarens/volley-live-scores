@@ -1,6 +1,8 @@
 package be.volley.live.controller;
 
 import java.time.LocalDate;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -43,6 +45,7 @@ public class AdminController {
         model.addAttribute("newGame", new Game());
         model.addAttribute("colors", COLORS);
         model.addAttribute("gameRulesList", GameRules.values());
+        model.addAttribute("teamRulesMap", buildTeamRulesMap());
         return "admin/index";
     }
 
@@ -84,10 +87,18 @@ public class AdminController {
             model.addAttribute("newGame", game);
             model.addAttribute("colors", COLORS);
             model.addAttribute("gameRulesList", GameRules.values());
+            model.addAttribute("teamRulesMap", buildTeamRulesMap());
             return "admin/index";
         }
 
         return "redirect:/admin?date=" + date;  // keep YYYY-MM-DD in URL
+    }
+
+    private Map<String, String> buildTeamRulesMap() {
+        return teamService.getAllTeams().stream().collect(Collectors.toMap(
+            t -> t.getCode(),
+            t -> t.getGameRules() != null ? t.getGameRules().name() : "YOUTH"
+        ));
     }
 
     @PostMapping("/games/{id}/delete")

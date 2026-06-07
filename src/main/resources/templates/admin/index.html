@@ -138,13 +138,7 @@
 </div>
 
 <script th:inline="javascript">
-    const teamRules = {};
-    /*[[ ${teams} ]]*/ [].forEach(function() {}); // placeholder — built below
-</script>
-<script th:inline="javascript">
-    /*[# th:each="team : ${teams}"]*/
-    teamRules[/*[[${team.code}]]*/ ''] = /*[[${team.gameRules}]]*/ 'YOUTH';
-    /*[/]*/
+    const teamRules = /*[[${teamRulesMap}]]*/ {};
 
     function syncGameRules(teamCode) {
         const rules = teamRules[teamCode] || 'YOUTH';
