@@ -183,7 +183,53 @@ MongoDB collection: `scores` · One document per game, created when scoring star
 
 ---
 
-## 7. Technical Decisions
+## 7. Deployment Notes
+
+### Platform: Railway + MongoDB Atlas
+
+| Concern | Config | Why |
+|---------|--------|-----|
+| **Reverse proxy forward headers** | `server.forward-headers-strategy=FRAMEWORK` in `application.properties` | Railway sits behind a reverse proxy; without this, Spring constructs OAuth2 redirect URIs using the internal HTTP host instead of the public HTTPS URL, causing `redirect_uri_mismatch` from Google |
+| **Port** | `server.port=${PORT:8080}` | Railway injects `PORT` env var; falls back to 8080 locally |
+| **MongoDB URI** | `SPRING_MONGODB_URI` Railway env var | Overrides the default `application.properties` value for cloud |
+| **Google OAuth2 credentials** | `SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_ID` and `SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_SECRET` Railway env vars | Full Spring property name format is more reliably picked up than short names like `GOOGLE_CLIENT_ID` with `${...}` placeholders |
+| **OAuth2 redirect URI** | `https://volley-live-scores-production.up.railway.app/login/oauth2/code/google` | Must be added as an Authorized Redirect URI in Google Cloud Console; Spring Security handles this path automatically |
+| **Railway Watch Paths** | `src/**` and `pom.xml` only | Prevents Railway from rebuilding on docs-only commits |
+| **Local dev credentials** | `src/main/resources/application-local.properties` (gitignored) | Contains MongoDB URI and Google OAuth2 client ID/secret for local dev; never committed |
+
+### Google Cloud Console (OAuth2)
+
+- Project owner: `sarensconsulting@gmail.com`
+- App login account: `fsarens@gmail.com` (registered in `app_users` MongoDB collection)
+- Consent screen: **Published** (not Testing) — email + profile scopes are non-sensitive, no Google verification required
+- Authorized redirect URIs:
+  - `http://localhost:8080/login/oauth2/code/google` (local dev)
+  - `https://volley-live-scores-production.up.railway.app/login/oauth2/code/google` (production)
+
+### Bootstrap script (run once in Atlas before deploying security)
+
+```js
+// 1. Create tenant
+db.tenants.insertOne({ slug: "wavoc", name: "WAVOC" })
+
+// 2. Get tenant id
+var tenantId = db.tenants.findOne({ slug: "wavoc" })._id.toString()
+
+// 3. Add admin user
+db.app_users.insertOne({ email: "fsarens@gmail.com", role: "ADMIN", tenantId: tenantId })
+
+// 4. Set tenantId on all teams
+db.teams.updateMany({}, [{ $set: { tenantId: tenantId } }])
+
+// 5. Create dashboard token
+db.dashboard_tokens.insertOne({ token: "wavoc-dashboard-2026", label: "Bruultje screen 1", tenantId: tenantId })
+```
+
+> ⚠️ Bootstrap must run **before** deploying the security feature — deploying first locks everyone out.
+
+---
+
+## 7b. Technical Decisions
 
 | Decision | Choice | Reason |
 |----------|--------|--------|
