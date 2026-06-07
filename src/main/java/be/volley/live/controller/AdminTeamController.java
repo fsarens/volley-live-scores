@@ -8,6 +8,7 @@ import be.volley.live.model.GameRules;
 import be.volley.live.model.League;
 import be.volley.live.model.Sponsor;
 import be.volley.live.model.Team;
+import be.volley.live.model.TeamColor;
 import be.volley.live.repository.GameRepository;
 import be.volley.live.service.TeamService;
 
@@ -17,12 +18,6 @@ public class AdminTeamController {
 
     private final TeamService teamService;
     private final GameRepository gameRepository;
-
-    private static final String[][] COLORS = {
-        {"#333333", "Charcoal"}, {"#ffffff", "White"}, {"#1565c0", "Blue"},
-        {"#c62828", "Red"}, {"#2e7d32", "Green"}, {"#e65100", "Orange"},
-        {"#f9a825", "Yellow"}, {"#6a1b9a", "Purple"}
-    };
 
     public AdminTeamController(TeamService teamService, GameRepository gameRepository) {
         this.teamService = teamService;
@@ -39,7 +34,7 @@ public class AdminTeamController {
     public String newForm(Model model) {
         model.addAttribute("team", new Team());
         model.addAttribute("leagues", League.values());
-        model.addAttribute("colors", COLORS);
+        model.addAttribute("colors", TeamColor.values());
         model.addAttribute("gameRulesList", GameRules.values());
         return "admin/teams/form";
     }
@@ -50,7 +45,7 @@ public class AdminTeamController {
             @RequestParam String name,
             @RequestParam League league,
             @RequestParam(required = false) String reeks,
-            @RequestParam String color,
+            @RequestParam TeamColor color,
             @RequestParam GameRules gameRules,
             @RequestParam(required = false) String sponsor1Name,
             @RequestParam(required = false) String sponsor1Logo,
@@ -80,7 +75,7 @@ public class AdminTeamController {
             model.addAttribute("error", "Could not save team: " + e.getMessage());
             model.addAttribute("team", team);
             model.addAttribute("leagues", League.values());
-            model.addAttribute("colors", COLORS);
+            model.addAttribute("colors", TeamColor.values());
             model.addAttribute("gameRulesList", GameRules.values());
             return "admin/teams/form";
         }
@@ -94,7 +89,7 @@ public class AdminTeamController {
                 .orElseThrow(() -> new IllegalArgumentException("Team not found: " + id));
         model.addAttribute("team", team);
         model.addAttribute("leagues", League.values());
-        model.addAttribute("colors", COLORS);
+        model.addAttribute("colors", TeamColor.values());
         model.addAttribute("gameRulesList", GameRules.values());
         return "admin/teams/form";
     }
@@ -106,7 +101,7 @@ public class AdminTeamController {
             @RequestParam String name,
             @RequestParam League league,
             @RequestParam(required = false) String reeks,
-            @RequestParam String color,
+            @RequestParam TeamColor color,
             @RequestParam GameRules gameRules,
             @RequestParam(required = false) String sponsor1Name,
             @RequestParam(required = false) String sponsor1Logo,
@@ -134,7 +129,6 @@ public class AdminTeamController {
 
         teamService.save(team);
 
-        // Cascade team changes to all games where this team is embedded as home team
         gameRepository.findByHomeTeamCode(team.getCode()).forEach(game -> {
             game.setHomeTeam(team);
             gameRepository.save(game);

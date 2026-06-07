@@ -15,7 +15,7 @@ public class Game {
 
     private Team homeTeam;         // embedded — full WAVOC team
     private String awayTeam;       // visiting club name
-    private String awayColor = "#c62828"; // preset by admin, used in scoring UI
+    private TeamColor awayColor = TeamColor.RED; // preset by admin, used in scoring UI
 
     private GameStatus status = GameStatus.SCHEDULED;
 
@@ -41,8 +41,9 @@ public class Game {
     public String getAwayTeam() { return awayTeam; }
     public void setAwayTeam(String awayTeam) { this.awayTeam = awayTeam; }
 
-    public String getAwayColor() { return awayColor; }
-    public void setAwayColor(String awayColor) { this.awayColor = awayColor; }
+    @com.fasterxml.jackson.databind.annotation.JsonSerialize(using = TeamColorSerializer.class)
+    public TeamColor getAwayColor() { return awayColor; }
+    public void setAwayColor(TeamColor awayColor) { this.awayColor = awayColor; }
 
     public GameStatus getStatus() { return status; }
     public void setStatus(GameStatus status) { this.status = status; }

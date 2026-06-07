@@ -400,8 +400,8 @@
     const DEV_MODE = /*[[${devMode}]]*/ false;
     const HOME_NAME = /*[[${game.homeTeam.name}]]*/ '';
     const HOME_CODE = /*[[${game.homeTeam.code}]]*/ '';
-    const HOME_COLOR  = /*[[${game.homeTeam.color ?: '#1565c0'}]]*/ '#1565c0';
-    const AWAY_COLOR  = /*[[${game.awayColor ?: '#c62828'}]]*/ '#c62828';
+    const HOME_COLOR  = /*[[${game.homeTeam.color?.hex ?: '#42a5f5'}]]*/ '#42a5f5';
+    const AWAY_COLOR  = /*[[${game.awayColor?.hex ?: '#ef5350'}]]*/ '#ef5350';
     const AWAY_NAME   = /*[[${game.awayTeam}]]*/ '';
     const GAME_STATUS = /*[[${game.status.name()}]]*/ 'SCHEDULED';
     const GAME_RULES  = /*[[${game.gameRules.name()}]]*/ 'YOUTH';

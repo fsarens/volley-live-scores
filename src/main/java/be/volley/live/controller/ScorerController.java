@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 
 import be.volley.live.model.Court;
 import be.volley.live.model.Game;
+import be.volley.live.model.TeamColor;
 import be.volley.live.model.GameStatus;
 import be.volley.live.model.Score;
 import be.volley.live.service.GameService;
@@ -44,17 +45,7 @@ public class ScorerController {
         model.addAttribute("gameId", id);
         model.addAttribute("courts", Court.values());
 
-        // Preset colors for the color picker
-        model.addAttribute("colors", new String[][]{
-            {"#333333", "Charcoal"},
-            {"#ffffff", "White"},
-            {"#1565c0", "Blue"},
-            {"#c62828", "Red"},
-            {"#2e7d32", "Green"},
-            {"#e65100", "Orange"},
-            {"#f9a825", "Yellow"},
-            {"#6a1b9a", "Purple"}
-        });
+        model.addAttribute("colors", TeamColor.values());
 
         if (game.getStatus() == GameStatus.IN_PROGRESS || game.getStatus() == GameStatus.FINISHED) {
             scoreService.getScore(id).ifPresent(score -> model.addAttribute("score", score));

@@ -123,12 +123,13 @@
             <label>
                 Away team color
                 <select name="awayColor" required
-                        style="background:#c62828; color:#fff"
-                        onchange="this.style.background=this.value; this.style.color=this.value==='#ffffff'?'#000':'#fff'">
+                        th:style="${'background:' + T(be.volley.live.model.TeamColor).RED.hex + '; color:#fff'}"
+                        onchange="this.style.background=this.options[this.selectedIndex].dataset.hex; this.style.color=this.options[this.selectedIndex].dataset.hex==='#ffffff'?'#000':'#fff'">
                     <option th:each="c : ${colors}"
-                            th:value="${c[0]}"
-                            th:text="${c[1]}"
-                            th:style="${'background:' + c[0] + '; color:' + (c[0] == '#ffffff' ? '#000' : '#fff')}">
+                            th:value="${c.name()}"
+                            th:text="${c.name()}"
+                            th:attr="data-hex=${c.hex}"
+                            th:style="${'background:' + c.hex + '; color:' + (c == T(be.volley.live.model.TeamColor).WHITE ? '#000' : '#fff')}">
                     </option>
                 </select>
             </label>

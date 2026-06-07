@@ -59,12 +59,13 @@
         <div class="form-group">
             <label>Color</label>
             <select name="color" id="color-select" onchange="updateColorSelect(this)" required
-                    th:style="${'background:' + (team.color ?: '#1565c0') + '; color:' + (team.color == '#ffffff' ? '#000' : '#fff')}">
+                    th:style="${'background:' + (team.color?.hex ?: '#42a5f5') + '; color:' + (team.color == T(be.volley.live.model.TeamColor).WHITE ? '#000' : '#fff')}">
                 <option th:each="c : ${colors}"
-                        th:value="${c[0]}"
-                        th:text="${c[1]}"
-                        th:selected="${team.color == c[0]}"
-                        th:style="${'background:' + c[0] + '; color:' + (c[0] == '#ffffff' ? '#000' : '#fff')}"></option>
+                        th:value="${c.name()}"
+                        th:text="${c.name()}"
+                        th:selected="${team.color == c}"
+                        th:attr="data-hex=${c.hex}"
+                        th:style="${'background:' + c.hex + '; color:' + (c == T(be.volley.live.model.TeamColor).WHITE ? '#000' : '#fff')}"></option>
             </select>
         </div>
     </div>
@@ -116,8 +117,9 @@
 </form>
 <script>
     function updateColorSelect(sel) {
-        sel.style.background = sel.value;
-        sel.style.color = sel.value === '#ffffff' ? '#000' : '#fff';
+        const hex = sel.options[sel.selectedIndex].dataset.hex;
+        sel.style.background = hex;
+        sel.style.color = hex === '#ffffff' ? '#000' : '#fff';
     }
 </script>
 </body>

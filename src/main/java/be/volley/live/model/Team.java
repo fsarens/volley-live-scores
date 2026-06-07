@@ -24,8 +24,8 @@ public class Team implements Serializable {
 	private League league;
 
 
-	/* team color (hex) for the scoring UI */
-	private String color = "#1565c0";
+	/* team color for the scoring UI */
+	private TeamColor color = TeamColor.BLUE;
 
 	/* soft delete — inactive teams are hidden from game planning and ranking */
 	private boolean active = true;
@@ -111,8 +111,9 @@ public class Team implements Serializable {
 	}
 
 
-	public String getColor() { return color; }
-	public void setColor(String color) { this.color = color; }
+	@com.fasterxml.jackson.databind.annotation.JsonSerialize(using = TeamColorSerializer.class)
+	public TeamColor getColor() { return color; }
+	public void setColor(TeamColor color) { this.color = color; }
 
 	public boolean isActive() { return active; }
 	public void setActive(boolean active) { this.active = active; }
