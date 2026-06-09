@@ -229,7 +229,7 @@ db.dashboard_tokens.insertOne({ token: "wavoc-dashboard-2026", label: "Bruultje 
 
 ---
 
-## 7b. Technical Decisions
+## 8. Technical Decisions
 
 | Decision | Choice | Reason |
 |----------|--------|--------|
@@ -242,7 +242,7 @@ db.dashboard_tokens.insertOne({ token: "wavoc-dashboard-2026", label: "Bruultje 
 
 ---
 
-## 8. v1 Complete — tagged v1.0.0
+## 9. v1 Complete — tagged v1.0.0
 
 All MVP features shipped:
 
@@ -252,17 +252,11 @@ All MVP features shipped:
 - [x] **Set 5 side handling** — scorer chooses sides after coin toss; teams auto-switch at 8 points mid-set
 - [x] **Shared team data** — MongoDB Atlas, read by both volley-live-scores and newRanking
 
-## 9. Backlog — v2
+## 10. Backlog — v2
 
 ### 🔴 High Priority
 
-- [ ] **Color readability on dashboard** — verify all home/away color combinations are readable from 10m on a TV screen; dark background makes some combos (e.g. purple vs blue) hard to distinguish; may need contrast check and palette restriction
-- [ ] **Youth game format** — youth games always play all 4 sets regardless of match score; needs a boolean flag (e.g. `alwaysPlayAllSets`) on Game level; scoring logic must skip match-won check for sets 1-3 when flag is set
-- [ ] **Security / login** — Google OAuth2 via Spring Security; club already uses Google so all members have accounts
-  - **Admin role** — manage teams and games; granted per Google account in MongoDB
-  - **Scorer role** — enter scores for today's games; granted per Google account in MongoDB
-  - **Dashboard** — no login; protected by a secret URL token (e.g. `?token=abc123`) so it can run unattended on a TV/OptiSigns
-  - Needs: Google Cloud OAuth2 client ID + secret; `User` collection in MongoDB storing Google subject ID + role
+*(all high priority items done)*
 
 ### 🟡 Normal Priority
 
@@ -281,13 +275,16 @@ All MVP features shipped:
 
 - [x] **Cloud hosting** — deployed to Railway with MongoDB Atlas; auto-deploy on PR merge to main
 - [x] **Score simulator / fast input** — `?dev=true` URL flag disables hold requirement; orange DEV MODE badge shown
+- [x] **Color readability** — TeamColor enum with brighter palette; single source of truth via `getHex()`; TeamColorSerializer outputs hex for JS
+- [x] **Youth game format** — bonus 4th set on 3-0; set doesn't count; banner shown; adult/youth GameRules enum on Team and Game
+- [x] **Security / login** — Google OAuth2 (OIDC) + dashboard token auth; ROLE_ADMIN / ROLE_SCORER / ROLE_DASHBOARD; multi-tenant with Tenant, AppUser, DashboardToken collections; PR B (user management UI) still to do
 
-## 10. Backlog — v3 (after summer, September+)
+## 11. Backlog — v3 (after summer, September+)
 
 - [ ] **VolleyScore game fetching API** — fetch official game schedule and results from the VVB/Sporta league API; new season starts in September so API data is not available before then
 - [ ] **MongoDB IP whitelist** — Atlas currently allows all IPs (0.0.0.0/0); blocked by Railway Pro ($20/month) needed for static egress IPs; local dev can use NordVPN dedicated IP; revisit after summer
 
-## 11. Testing Backlog
+## 12. Testing Backlog
 
 - [ ] **Concurrent scorers** — test behaviour when two scorers are on the same game simultaneously; verify optimistic locking (HTTP 409) is handled correctly and both scorers see the conflict banner and resync
 - [ ] **Mobile — iOS** — test scorer UI on iOS Safari; verify press-and-hold works correctly with touch events, landscape lock, and no unwanted browser gestures interfering
