@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cd /Users/filipsarens/git/volley-live-scores && ./mvnw -q compile 2>&1 || true",
+            "statusMessage": "Compiling..."
+          }
+        ]
+      }
+    ]
+  }
+}

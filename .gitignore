@@ -35,6 +35,7 @@ build/
 ### Fleet / Claude ###
 .fleet/launch.json
 .claude/
+!.claude/settings.json
 
 ### Local config (contains credentials) ###
 src/main/resources/application-local.properties
