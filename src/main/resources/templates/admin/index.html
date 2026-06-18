@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
     <title>Game Planning - Admin</title>
@@ -55,10 +56,9 @@
 </head>
 <body>
 
-<nav style="margin-bottom:12px; font-size:0.9em; display:flex; gap:20px;">
-    <a href="/admin/teams" style="color:#0066cc; text-decoration:none;">⚙ Manage Teams</a>
-    <a href="/dashboard" target="_blank" style="color:#0066cc; text-decoration:none;">📺 Dashboard ↗</a>
-</nav>
+<div th:replace="~{fragments/admin-nav :: admin-nav('admin')}"></div>
+
+<div style="max-width:900px; margin:0 auto; padding:20px;">
 <h1>Game Planning</h1>
 
 <!-- Date navigation -->
@@ -242,5 +242,6 @@
         }, { once: true });
     }
 </script>
+</div>
 </body>
 </html>

@@ -49,6 +49,8 @@ Team master data is shared with the existing **newRanking** project — a daily 
 
 ### 3.1 User Stories
 
+- *As an Admin I want that after login I land on a home page showing today's games so I have an immediate overview of the day*
+- *As an Admin I want a navigation bar on all admin pages so I can switch between Today's Games, Game Planning and Teams without losing context*
 - *As an Admin I want to see the list of games per day so I can manage the game schedule*
 - *As an Admin I want to add a game for a specific date, time block, court, home team and away team so that scorers can find and score it*
 - *As an Admin I want to set the away team color when creating a game so scorers do not have to configure it*
@@ -310,8 +312,7 @@ All MVP features shipped:
 - [ ] **Google Cloud Console branding** — OAuth2 app is published (no more test user list); complete the branding fields (logo, privacy policy, support email, terms of service) before onboarding a second tenant; low priority until then
 - [ ] **Dashboard — upcoming games ribbon** — optional bottom ribbon showing planned (SCHEDULED) games for the next timeblock(s) today; controlled via URL parameter (e.g. `?ribbon=true` or `?ribbon=1` for next 1 timeblock); useful for screens that display live scores but also want to preview what's coming next
 
-- [ ] **Profile icon + logout** — show a small profile avatar (Google picture or initials) in the top corner of all authenticated views (admin, scorer); clicking opens a dropdown with logout option
-- [ ] **Role switcher for admin** — admin can switch between admin, scorer, and dashboard views from a dropdown on the profile icon, without navigating manually to each URL; dashboard view should pass the token automatically so admin can preview what OptiSigns sees
+- [ ] **Profile icon** — show a small profile avatar (Google picture or initials) in the nav bar; currently sign out is a plain text button
 
 - [ ] **Dashboard refresh optimisation** — finished games have no live score to update; skip score fetch for FINISHED games to reduce unnecessary polling; consider stopping refresh entirely when all games are finished
 - [ ] **Scorer overview refresh** — evaluate whether 5s auto-refresh is needed on the game list (`/score`); scorers navigate manually so polling may be unnecessary overhead
@@ -323,6 +324,7 @@ All MVP features shipped:
 - [x] **Color readability** — TeamColor enum with brighter palette; single source of truth via `getHex()`; TeamColorSerializer outputs hex for JS
 - [x] **Youth game format** — bonus 4th set on 3-0; set doesn't count; banner shown; adult/youth GameRules enum on Team and Game
 - [x] **Security / login** — Google OAuth2 (OIDC) + dashboard token auth; ROLE_ADMIN / ROLE_SCORER / ROLE_DASHBOARD; multi-tenant with Tenant, AppUser, DashboardToken collections; PR B (user management UI) still to do
+- [x] **Admin landing page + navigation bar** — after login admins land on `/home` showing today's games; persistent nav bar on all admin pages (Today / Game Planning / Teams) with Tabler icons and active state highlighting; scorers still go to `/score`
 - [x] **Admin game list — timeblock sections with modal add game** — day view groups games by timeblock; solid "+ Add game" button per section; modal pre-fills timeblock and shows only free courts; court list updates dynamically when timeblock changes in modal; "All courts taken" label replaces button when block is full
 
 ## 11. Backlog — v3 (after summer, September+)

@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+</head>
+<body>
+<nav th:fragment="admin-nav(active)"
+     sec:authorize="hasRole('ADMIN')"
+     style="background:#1e3a5f; display:flex; align-items:center; gap:8px; padding:8px 20px; font-family:Arial,sans-serif;">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+    <a th:href="@{/home}"
+       th:style="${active == 'home'} ? 'color:rgba(255,255,255,0.85);background:rgba(255,255,255,0.15);text-decoration:none;padding:6px 14px;border-radius:4px;font-size:13px;display:inline-flex;align-items:center;gap:6px;' : 'color:rgba(255,255,255,0.5);text-decoration:none;padding:6px 14px;border-radius:4px;font-size:13px;display:inline-flex;align-items:center;gap:6px;'">
+        <i class="ti ti-home" style="font-size:16px;" aria-hidden="true"></i> Today
+    </a>
+    <a th:href="@{/admin}"
+       th:style="${active == 'admin'} ? 'color:rgba(255,255,255,0.85);background:rgba(255,255,255,0.15);text-decoration:none;padding:6px 14px;border-radius:4px;font-size:13px;display:inline-flex;align-items:center;gap:6px;' : 'color:rgba(255,255,255,0.5);text-decoration:none;padding:6px 14px;border-radius:4px;font-size:13px;display:inline-flex;align-items:center;gap:6px;'">
+        <i class="ti ti-calendar" style="font-size:16px;" aria-hidden="true"></i> Game Planning
+    </a>
+    <a th:href="@{/admin/teams}"
+       th:style="${active == 'teams'} ? 'color:rgba(255,255,255,0.85);background:rgba(255,255,255,0.15);text-decoration:none;padding:6px 14px;border-radius:4px;font-size:13px;display:inline-flex;align-items:center;gap:6px;' : 'color:rgba(255,255,255,0.5);text-decoration:none;padding:6px 14px;border-radius:4px;font-size:13px;display:inline-flex;align-items:center;gap:6px;'">
+        <i class="ti ti-users" style="font-size:16px;" aria-hidden="true"></i> Teams
+    </a>
+    <span style="flex:1"></span>
+    <form th:action="@{/logout}" method="post" style="margin:0;">
+        <button type="submit" style="background:none;border:none;color:rgba(255,255,255,0.5);cursor:pointer;font-size:13px;padding:6px 10px;border-radius:4px;">
+            Sign out
+        </button>
+    </form>
+</nav>
+</body>
+</html>

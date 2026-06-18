@@ -15,11 +15,14 @@ public class SecurityConfig {
 
     private final AppOAuth2UserService appOAuth2UserService;
     private final DashboardTokenRepository dashboardTokenRepository;
+    private final RoleBasedSuccessHandler roleBasedSuccessHandler;
 
     public SecurityConfig(AppOAuth2UserService appOAuth2UserService,
-                          DashboardTokenRepository dashboardTokenRepository) {
+                          DashboardTokenRepository dashboardTokenRepository,
+                          RoleBasedSuccessHandler roleBasedSuccessHandler) {
         this.appOAuth2UserService = appOAuth2UserService;
         this.dashboardTokenRepository = dashboardTokenRepository;
+        this.roleBasedSuccessHandler = roleBasedSuccessHandler;
     }
 
     @Bean
@@ -28,6 +31,7 @@ public class SecurityConfig {
             .addFilterBefore(new DashboardTokenFilter(dashboardTokenRepository),
                     OAuth2AuthorizationRequestRedirectFilter.class)
             .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/home").hasRole("ADMIN")
                 .requestMatchers("/admin", "/admin/**").hasRole("ADMIN")
                 .requestMatchers("/score", "/score/**", "/scorer", "/scorer/**").hasAnyRole("ADMIN", "SCORER")
                 .requestMatchers("/dashboard", "/dashboard/**", "/api", "/api/**").hasAnyRole("ADMIN", "SCORER", "DASHBOARD")
@@ -35,7 +39,7 @@ public class SecurityConfig {
             )
             .oauth2Login(oauth2 -> oauth2
                 .userInfoEndpoint(u -> u.oidcUserService(appOAuth2UserService))
-                .defaultSuccessUrl("/score", true)
+                .successHandler(roleBasedSuccessHandler)
                 .failureUrl("/login?error=true")
             )
             .logout(logout -> logout

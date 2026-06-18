@@ -1,10 +1,12 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
     <title th:text="${team.id == null ? 'Add Team' : 'Edit Team'} + ' - Admin'">Team - Admin</title>
     <style>
-        body { font-family: Arial, sans-serif; max-width: 620px; margin: 40px auto; padding: 0 20px; }
+        body { font-family: Arial, sans-serif; margin: 0; }
+        .form-content { max-width: 620px; margin: 0 auto; padding: 20px; }
         h1 { color: #333; }
         nav { margin-bottom: 16px; font-size: 0.9em; }
         nav a { color: #0066cc; text-decoration: none; }
@@ -22,7 +24,8 @@
     </style>
 </head>
 <body>
-<nav><a href="/admin/teams">← Teams</a></nav>
+<div th:replace="~{fragments/admin-nav :: admin-nav('teams')}"></div>
+<div class="form-content">
 <h1 th:text="${team.id == null ? 'Add Team' : 'Edit Team — ' + team.code}">Team</h1>
 
 <div class="error" th:if="${error}" th:text="${error}"></div>
@@ -122,5 +125,6 @@
         sel.style.color = hex === '#ffffff' ? '#000' : '#fff';
     }
 </script>
+</div>
 </body>
 </html>

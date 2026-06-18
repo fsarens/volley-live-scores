@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
     <title>Teams - Admin</title>
@@ -26,7 +27,8 @@
     </style>
 </head>
 <body>
-<nav><a href="/admin">← Game Planning</a></nav>
+<div th:replace="~{fragments/admin-nav :: admin-nav('teams')}"></div>
+<div style="max-width:900px; margin:0 auto; padding:20px;">
 <h1>Teams <a class="btn-add" href="/admin/teams/new">+ Add team</a></h1>
 
 <table id="teams-table">
@@ -98,5 +100,6 @@
         });
     });
 </script>
+</div>
 </body>
 </html>
