@@ -130,6 +130,11 @@ Team master data is shared with the existing **newRanking** project — a daily 
 | Match | Best of 5 sets — first team to win 3 sets |
 | Side switch | Teams switch sides after each set |
 | Starting side | Home team starting side configurable at game start |
+| Set 5 sides | Scorer chooses sides after coin toss; teams auto-switch when either team reaches 8 points |
+| **Youth — bonus set** | If match would end 3-0, a bonus 4th set is played; result does not count toward match score |
+| **Youth — no 5th set after bonus** | After the bonus 4th set ends, the game is over regardless of outcome; 5th set only applies when match is 2-2 |
+| **Youth — banner** | "Youth rules — 4th set (does not count)" banner shown during bonus set |
+| **Game rules per team** | `GameRules` enum (YOUTH / ADULT) set on Team; copied to Game at planning; default is YOUTH |
 
 ---
 
@@ -144,7 +149,9 @@ Team master data is shared with the existing **newRanking** project — a daily 
 | name | String | e.g. `Dames A - Promo 2B` |
 | league | Enum | VVB / KWB / Sporta |
 | reeks | String | League code for ranking fetch, e.g. `ADP2-B` |
-| color | String | Hex color, preset palette of 8 |
+| color | Enum | `TeamColor` — preset palette of 8 (WHITE/BLUE/RED/GREEN/ORANGE/YELLOW/PURPLE/CYAN) |
+| gameRules | Enum | YOUTH / ADULT — default game rules for this team's home games |
+| tenantId | String | MongoDB ObjectId of owning `Tenant` document |
 | sponsor | Object | name + logo path |
 | sponsor2 | Object | name + logo path |
 | active | Boolean | Default true; false = soft deleted |
@@ -161,8 +168,9 @@ MongoDB collection: `teams` · Shared between volley-live-scores and newRanking
 | court | Enum | A1, A2, A3, B1, B2 |
 | homeTeam | Team | Embedded full Team object |
 | awayTeam | String | Visiting club name |
-| awayColor | String | Hex — set by admin at creation |
+| awayColor | Enum | `TeamColor` — set by admin at game creation |
 | status | Enum | SCHEDULED / IN_PROGRESS / FINISHED |
+| gameRules | Enum | YOUTH / ADULT — copied from home team at game creation; can be overridden |
 
 MongoDB collection: `games` · homeTeam embedded for performance; cascaded on team update
 
@@ -177,9 +185,43 @@ MongoDB collection: `games` · homeTeam embedded for performance; cascaded on te
 | currentSetAway | int | Live score in current set |
 | currentSet | int | Set number 1-5 |
 | homeLeftSide | boolean | Flips after each set |
+| gameRules | Enum | YOUTH / ADULT — copied from Game at score start |
+| bonusSet | boolean | True during youth bonus 4th set; clears when set ends |
 | version | int | Incremented per point for optimistic concurrency |
 
 MongoDB collection: `scores` · One document per game, created when scoring starts
+
+### 6.4 Tenant
+
+| Field | Type | Notes |
+|-------|------|-------|
+| id | String | MongoDB ObjectId |
+| slug | String | Unique, e.g. `wavoc` |
+| name | String | e.g. `WAVOC` |
+
+MongoDB collection: `tenants`
+
+### 6.5 AppUser
+
+| Field | Type | Notes |
+|-------|------|-------|
+| id | String | MongoDB ObjectId |
+| email | String | Unique — Google account email |
+| role | Enum | ADMIN / SCORER |
+| tenantId | String | MongoDB ObjectId of owning Tenant |
+
+MongoDB collection: `app_users` · Bootstrapped manually in Atlas
+
+### 6.6 DashboardToken
+
+| Field | Type | Notes |
+|-------|------|-------|
+| id | String | MongoDB ObjectId |
+| token | String | Unique random string — included in dashboard URL as `?token=` |
+| label | String | e.g. `Bruultje screen 1` |
+| tenantId | String | MongoDB ObjectId of owning Tenant |
+
+MongoDB collection: `dashboard_tokens` · Bootstrapped manually; admin UI (PR B) to manage
 
 ---
 
