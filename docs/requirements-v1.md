@@ -55,6 +55,11 @@ Team master data is shared with the existing **newRanking** project — a daily 
 - *As an Admin I want that no duplicate games can be set on a court-timeblock combination*
 - *As an Admin I want that no duplicate games can be set on a homeTeam-timeblock combination*
 - *As an Admin I want to delete a game so I can correct planning mistakes*
+- *As an Admin I want to see the planned games for the selected day grouped by timeblock and sorted by court within the block section so I can quickly scan a full match day*
+- *As an Admin I want to have an add game button per timeblock section so I can quickly add a game without losing my place on the page*
+- *As an Admin I want that the add game form opens in a modal so I stay oriented in the day schedule while adding a game*
+- *As an Admin I want that only the available (not yet occupied) courts are shown in the add game modal so I cannot accidentally double-book a court*
+- *As an Admin I want that the list of available courts updates when I change the timeblock in the modal so the court options always reflect the selected timeblock*
 
 ### 3.2 Implementation Notes
 
@@ -303,8 +308,6 @@ All MVP features shipped:
 ### 🟡 Normal Priority
 
 - [ ] **Google Cloud Console branding** — OAuth2 app is published (no more test user list); complete the branding fields (logo, privacy policy, support email, terms of service) before onboarding a second tenant; low priority until then
-- [ ] **Admin game list — sections per timeblock** — group games by timeblock on the admin day view; each timeblock is a collapsible or static section header (e.g. "10:00", "12:00"); makes it easier to scan a full match day at a glance
-- [ ] **Admin add game — per timeblock** — show an "Add game" button inside each timeblock section; clicking prefills the timeblock field in the add game form so the admin doesn't have to select it manually
 - [ ] **Dashboard — upcoming games ribbon** — optional bottom ribbon showing planned (SCHEDULED) games for the next timeblock(s) today; controlled via URL parameter (e.g. `?ribbon=true` or `?ribbon=1` for next 1 timeblock); useful for screens that display live scores but also want to preview what's coming next
 
 - [ ] **Profile icon + logout** — show a small profile avatar (Google picture or initials) in the top corner of all authenticated views (admin, scorer); clicking opens a dropdown with logout option
@@ -320,6 +323,7 @@ All MVP features shipped:
 - [x] **Color readability** — TeamColor enum with brighter palette; single source of truth via `getHex()`; TeamColorSerializer outputs hex for JS
 - [x] **Youth game format** — bonus 4th set on 3-0; set doesn't count; banner shown; adult/youth GameRules enum on Team and Game
 - [x] **Security / login** — Google OAuth2 (OIDC) + dashboard token auth; ROLE_ADMIN / ROLE_SCORER / ROLE_DASHBOARD; multi-tenant with Tenant, AppUser, DashboardToken collections; PR B (user management UI) still to do
+- [x] **Admin game list — timeblock sections with modal add game** — day view groups games by timeblock; solid "+ Add game" button per section; modal pre-fills timeblock and shows only free courts; court list updates dynamically when timeblock changes in modal; "All courts taken" label replaces button when block is full
 
 ## 11. Backlog — v3 (after summer, September+)
 

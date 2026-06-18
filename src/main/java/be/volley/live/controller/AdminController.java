@@ -1,7 +1,7 @@
 package be.volley.live.controller;
 
 import java.time.LocalDate;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Controller;
@@ -29,8 +29,15 @@ public class AdminController {
         LocalDate localDate = (date != null) ? LocalDate.parse(date) : LocalDate.now();
         String dateStr = GameService.toDateStr(localDate);
 
+        List<Game> games = gameService.getGamesByDate(dateStr);
+        Map<String, List<Game>> gamesByBlock = buildGamesByBlock(games);
+        Map<String, List<String>> gamesPerBlock = buildUsedCourts(gamesByBlock);
+
         model.addAttribute("date", localDate);
-        model.addAttribute("games", gameService.getGamesByDate(dateStr));
+        model.addAttribute("games", games);
+        model.addAttribute("gamesByBlock", gamesByBlock);
+        model.addAttribute("gamesPerBlock", gamesPerBlock);
+        model.addAttribute("totalCourts", Court.values().length);
         model.addAttribute("teams", teamService.getAllTeams());
         model.addAttribute("timeBlocks", TimeBlock.values());
         model.addAttribute("courts", Court.values());
@@ -70,9 +77,15 @@ public class AdminController {
         try {
             gameService.createGame(game);
         } catch (IllegalArgumentException e) {
+            List<Game> games = gameService.getGamesByDate(dateStr);
+            Map<String, List<Game>> gamesByBlock = buildGamesByBlock(games);
+            Map<String, List<String>> gamesPerBlock = buildUsedCourts(gamesByBlock);
             model.addAttribute("date", localDate);
             model.addAttribute("error", e.getMessage());
-            model.addAttribute("games", gameService.getGamesByDate(dateStr));
+            model.addAttribute("games", games);
+            model.addAttribute("gamesByBlock", gamesByBlock);
+            model.addAttribute("gamesPerBlock", gamesPerBlock);
+            model.addAttribute("totalCourts", Court.values().length);
             model.addAttribute("teams", teamService.getAllTeams());
             model.addAttribute("timeBlocks", TimeBlock.values());
             model.addAttribute("courts", Court.values());
@@ -84,6 +97,21 @@ public class AdminController {
         }
 
         return "redirect:/admin?date=" + date;
+    }
+
+    private Map<String, List<Game>> buildGamesByBlock(List<Game> games) {
+        Map<String, List<Game>> map = new LinkedHashMap<>();
+        for (TimeBlock tb : TimeBlock.values()) map.put(tb.name(), new ArrayList<>());
+        for (Game g : games) map.get(g.getTimeBlock().name()).add(g);
+        map.values().forEach(list -> list.sort(Comparator.comparing(g -> g.getCourt().name())));
+        return map;
+    }
+
+    private Map<String, List<String>> buildUsedCourts(Map<String, List<Game>> gamesByBlock) {
+        Map<String, List<String>> map = new LinkedHashMap<>();
+        gamesByBlock.forEach((key, list) ->
+            map.put(key, list.stream().map(g -> g.getCourt().name()).collect(Collectors.toList())));
+        return map;
     }
 
     private Map<String, String> buildTeamRulesMap() {
